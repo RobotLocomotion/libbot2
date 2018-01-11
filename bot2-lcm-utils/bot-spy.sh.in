@@ -12,4 +12,4 @@ for d in . .. ../.. ../../.. ../../../.. "@CMAKE_INSTALL_PREFIX@"; do
   fi
 done
 export CLASSPATH
-exec lcm-spy
+exec "@LCM_SPY_EXECUTABLE@"

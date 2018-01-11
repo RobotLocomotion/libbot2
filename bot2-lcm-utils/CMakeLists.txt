@@ -32,6 +32,18 @@ add_subdirectory(src/who)
 add_subdirectory(src/tunnel)
 add_subdirectory(python)
 
+if(TARGET ${LCM_NAMESPACE}lcm)
+  get_target_property(LCM_INCLUDE_DIR ${LCM_NAMESPACE}lcm
+    INTERFACE_INCLUDE_DIRECTORIES)
+  get_filename_component(LCM_PREFIX "${LCM_INCLUDE_DIR}" DIRECTORY)
+  set(LCM_SPY_HINT "${LCM_PREFIX}/bin)
+endif()
+
+find_program(LCM_SPY_EXECUTABLE NAMES lcm-spy HINTS "${LCM_SPY_HINT}")
+
+if(NOT LCM_SPY_EXECUTABLE)
+  message(FATAL_ERROR "Could NOT find lcm-spy")
+endif()
 
 # bot-spy
 set(script_name bot-spy)
