@@ -9,4 +9,15 @@ bot2-procman/python/src/bot_procman/build_prefix.py
 pod-build
 bot2-lcmgl/python/src/bot_lcmgl/__init__.py
 bot2-procman/python/src/bot_procman/__init__.py
+bot2-procman/python/src/bot_procman/command2_t.py
+bot2-procman/python/src/bot_procman/deputy_cmd2_t.py
+bot2-procman/python/src/bot_procman/deputy_cmd_t.py
+bot2-procman/python/src/bot_procman/discovery_t.py
+bot2-procman/python/src/bot_procman/info2_t.py
+bot2-procman/python/src/bot_procman/info_t.py
+bot2-procman/python/src/bot_procman/orders2_t.py
+bot2-procman/python/src/bot_procman/orders_t.py
+bot2-procman/python/src/bot_procman/printf_t.py
+bot2-procman/python/src/bot_procman/sheriff_cmd2_t.py
+bot2-procman/python/src/bot_procman/sheriff_cmd_t.py
 *.deb

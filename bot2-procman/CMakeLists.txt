@@ -27,7 +27,7 @@ include(cmake/pods.cmake)
 # automatically build LCM types.  This also defines a number of CMake
 # variables, see cmake/lcmtypes.cmake for details
 include(cmake/lcmtypes.cmake)
-lcmtypes_build(PY_DEST_DIR ${PROJECT_SOURCE_DIR}/python/src EXPORT ${POD_NAME})
+lcmtypes_build(EXPORT ${POD_NAME})
 
 
 add_subdirectory(src/deputy)
