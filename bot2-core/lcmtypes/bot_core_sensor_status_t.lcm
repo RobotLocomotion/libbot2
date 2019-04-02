@@ -6,12 +6,13 @@ struct sensor_status_t
     string   sensor_name;
     double   rate;  
     int16_t  type;
-    const int16_t VELODYNE_32 = 0;
-    const int16_t VELODYNE_64 = 1;      
-    const int16_t SICK_LASER = 2;
-    const int16_t HOKUYO_LASER = 3;
-    const int16_t KINECT = 4;                     
-    const int16_t IMU = 5;                     
-    const int16_t ORC = 6;                          
-    const int16_t DYNAMIXEL_SERVO = 7;
+    const int16_t VELODYNE_16 = 0;
+    const int16_t VELODYNE_32 = 1;
+    const int16_t VELODYNE_64 = 2;
+    const int16_t SICK_LASER = 3;
+    const int16_t HOKUYO_LASER = 4;
+    const int16_t KINECT = 5;
+    const int16_t IMU = 6;
+    const int16_t ORC = 7;
+    const int16_t DYNAMIXEL_SERVO = 8;
 }
