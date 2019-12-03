@@ -110,8 +110,10 @@ bot_viewer_start_recording (BotViewer *self)
 
     assert (self->movie_buffer == NULL);
 
-    int window_width = GTK_WIDGET (self->gl_area)->allocation.width;
-    int window_height = GTK_WIDGET (self->gl_area)->allocation.height;
+    GtkAllocation alloc;
+    gtk_widget_get_allocation(GTK_WIDGET (self->gl_area), &alloc);
+    int window_width = alloc.width;
+    int window_height = alloc.height;
 
     self->movie_width = window_width - (window_width % 4);
     self->movie_height = window_height;
@@ -567,7 +569,7 @@ _window_coord_to_ray (double x, double y, double ray_start[3], double ray_dir[3]
                       model_matrix, proj_matrix, viewport, 
                       &ray_start[0], &ray_start[1], &ray_start[2]) == GL_FALSE) 
         return -1;
-    
+
     double ray_end[3];
 
     if (mygluUnProject (x, y, 1,
@@ -578,7 +580,7 @@ _window_coord_to_ray (double x, double y, double ray_start[3], double ray_dir[3]
     ray_dir[0] = ray_end[0] - ray_start[0];
     ray_dir[1] = ray_end[1] - ray_start[1];
     ray_dir[2] = ray_end[2] - ray_start[2];
-            
+
     bot_vector_normalize_3d(ray_dir);
 
     return 0;
@@ -592,7 +594,9 @@ on_button_press (GtkWidget *widget, GdkEventButton *event, void *user_data)
     bot_gtk_gl_drawing_area_set_context (self->gl_area);
     double ray_start[3];
     double ray_dir[3];
-    _window_coord_to_ray (event->x, widget->allocation.height - event->y, ray_start, ray_dir);
+    GtkAllocation alloc;
+    gtk_widget_get_allocation(widget, &alloc);
+    _window_coord_to_ray (event->x, alloc.height - event->y, ray_start, ray_dir);
 
     // find a new picker?
     double best_distance = HUGE_VAL;
@@ -646,7 +650,9 @@ on_button_release (GtkWidget *widget, GdkEventButton *event, void *user_data)
     bot_gtk_gl_drawing_area_set_context (self->gl_area);
     double ray_start[3];
     double ray_dir[3];
-    _window_coord_to_ray (event->x, widget->allocation.height - event->y, ray_start, ray_dir);
+    GtkAllocation alloc;
+    gtk_widget_get_allocation(widget, &alloc);
+    _window_coord_to_ray (event->x, alloc.height - event->y, ray_start, ray_dir);
 
     // give picking handler first dibs
     int consumed = 0;
@@ -660,7 +666,7 @@ on_button_release (GtkWidget *widget, GdkEventButton *event, void *user_data)
     // try all the other handlers in order of priority
     for (unsigned int eidx = 0; !consumed && eidx < self->event_handlers->len; eidx++) {
         BotEventHandler *handler = g_ptr_array_index(self->event_handlers, eidx);
-        
+
         if (handler != self->picking_handler && handler->enabled && handler->mouse_release)
             if (handler->mouse_release(self, handler, ray_start, ray_dir, event))
                 break;
@@ -677,18 +683,20 @@ on_motion_notify (GtkWidget *widget, GdkEventMotion *event, void *user_data)
     bot_gtk_gl_drawing_area_set_context (self->gl_area);
     double ray_start[3];
     double ray_dir[3];
-    _window_coord_to_ray (event->x, widget->allocation.height - event->y, ray_start, ray_dir);
-    
+    GtkAllocation alloc;
+    gtk_widget_get_allocation(widget, &alloc);
+    _window_coord_to_ray (event->x, alloc.height - event->y, ray_start, ray_dir);
+
     // is anyone hovering?
     if (self->picking_handler == NULL || !self->picking_handler->picking) {
 
         // find a new hover?
         double best_distance = HUGE_VAL;
         BotEventHandler *best_handler = NULL;
-        
+
         for (unsigned int eidx = 0; eidx < self->event_handlers->len; eidx++) {
             BotEventHandler *handler = g_ptr_array_index(self->event_handlers, eidx);
-            
+
             handler->hovering = 0;
 
             if (handler->enabled && handler->hover_query) {
@@ -736,8 +744,10 @@ on_scroll_notify (GtkWidget *widget, GdkEventScroll *event, void *user_data)
     bot_gtk_gl_drawing_area_set_context (self->gl_area);
     double ray_start[3];
     double ray_dir[3];
-    _window_coord_to_ray (event->x, widget->allocation.height - event->y, ray_start, ray_dir);
-    
+    GtkAllocation alloc;
+    gtk_widget_get_allocation(widget, &alloc);
+    _window_coord_to_ray (event->x, alloc.height - event->y, ray_start, ray_dir);
+
     // give picking handler first dibs
     int consumed = 0;
     if (self->picking_handler && !self->picking_handler->picking)
@@ -835,12 +845,14 @@ _pixel_convert_8u_bgra_to_8u_rgb(uint8_t *dest, int dstride, int dwidth,
 static gboolean
 take_screenshot (void *user_data, char *fname)
 {
- 
+
     BotViewer *self = (BotViewer*) user_data;
     BotViewHandler *vhandler = self->view_handler;
 
-    int w = GTK_WIDGET (self->gl_area)->allocation.width;
-    int h = GTK_WIDGET (self->gl_area)->allocation.height;
+    GtkAllocation alloc;
+    gtk_widget_get_allocation(GTK_WIDGET (self->gl_area), &alloc);
+    int w = alloc.width;
+    int h = alloc.height;
     uint8_t *bgra = (uint8_t*)malloc (w*h*4);
     uint8_t *rgb = (uint8_t*)malloc (w*h*3);
     glReadPixels (0, 0, w, h, GL_BGRA, GL_UNSIGNED_BYTE, bgra); 
@@ -1195,16 +1207,16 @@ make_menus(BotViewer *viewer, GtkWidget *parent)
     viewer->menu_bar = menubar;
 
     gtk_box_pack_start(GTK_BOX(parent), menubar, FALSE, FALSE, 0);
-    
+ 
     GtkWidget *file_menuitem = gtk_menu_item_new_with_mnemonic("_File");
-    gtk_menu_bar_append(GTK_MENU_BAR(menubar), file_menuitem);
+    gtk_menu_shell_append(GTK_MENU_SHELL(menubar), file_menuitem);
 
     viewer->file_menu = gtk_menu_new();
     gtk_menu_item_set_submenu(GTK_MENU_ITEM(file_menuitem), viewer->file_menu);
 
     /////////////////////
     GtkWidget *renderers_menuitem = gtk_menu_item_new_with_mnemonic("_BotRenderers");
-    gtk_menu_bar_append(GTK_MENU_BAR(menubar), renderers_menuitem);
+    gtk_menu_shell_append(GTK_MENU_SHELL(menubar), renderers_menuitem);
 
     viewer->renderers_menu = gtk_menu_new();
     gtk_menu_item_set_submenu(GTK_MENU_ITEM(renderers_menuitem), viewer->renderers_menu);
@@ -1212,23 +1224,23 @@ make_menus(BotViewer *viewer, GtkWidget *parent)
     if (1) {
         // tearoff
         GtkWidget *tearoff = gtk_tearoff_menu_item_new();
-        gtk_menu_append (GTK_MENU(viewer->renderers_menu), tearoff);
+        gtk_menu_shell_append (GTK_MENU_SHELL(viewer->renderers_menu), tearoff);
         gtk_widget_show (tearoff);
 
         // separator
         GtkWidget *sep = gtk_separator_menu_item_new ();
-        gtk_menu_append (GTK_MENU(viewer->renderers_menu), sep);
+        gtk_menu_shell_append (GTK_MENU_SHELL(viewer->renderers_menu), sep);
         gtk_widget_show (sep);
 
         // select all item
         GtkWidget *select_all_mi = gtk_menu_item_new_with_mnemonic ("Select _All");
-        gtk_menu_append (GTK_MENU(viewer->renderers_menu), select_all_mi);
+        gtk_menu_shell_append (GTK_MENU_SHELL(viewer->renderers_menu), select_all_mi);
         gtk_widget_show (select_all_mi);
-        
+
         // remove all item
         GtkWidget *select_none_mi = 
             gtk_menu_item_new_with_mnemonic ("Select _None");
-        gtk_menu_append (GTK_MENU(viewer->renderers_menu), select_none_mi);
+        gtk_menu_shell_append (GTK_MENU_SHELL(viewer->renderers_menu), select_none_mi);
         gtk_widget_show (select_none_mi);
         g_signal_connect (G_OBJECT (select_all_mi), "activate", 
                           G_CALLBACK (on_select_all_renderers_activate), viewer);
@@ -1238,7 +1250,7 @@ make_menus(BotViewer *viewer, GtkWidget *parent)
 
     /////////////////////
     GtkWidget *event_handlers_menuitem = gtk_menu_item_new_with_mnemonic("_Input");
-    gtk_menu_bar_append(GTK_MENU_BAR(menubar), event_handlers_menuitem);
+    gtk_menu_shell_append(GTK_MENU_SHELL(menubar), event_handlers_menuitem);
 
     viewer->event_handlers_menu = gtk_menu_new();
     gtk_menu_item_set_submenu(GTK_MENU_ITEM(event_handlers_menuitem), viewer->event_handlers_menu);
@@ -1246,23 +1258,23 @@ make_menus(BotViewer *viewer, GtkWidget *parent)
     if (1) {
         // tearoff
         GtkWidget *tearoff = gtk_tearoff_menu_item_new();
-        gtk_menu_append (GTK_MENU(viewer->event_handlers_menu), tearoff);
+        gtk_menu_shell_append (GTK_MENU_SHELL(viewer->event_handlers_menu), tearoff);
         gtk_widget_show (tearoff);
 
         // separator
         GtkWidget *sep = gtk_separator_menu_item_new ();
-        gtk_menu_append (GTK_MENU(viewer->event_handlers_menu), sep);
+        gtk_menu_shell_append (GTK_MENU_SHELL(viewer->event_handlers_menu), sep);
         gtk_widget_show (sep);
 
         // select all item
         GtkWidget *select_all_mi = gtk_menu_item_new_with_mnemonic ("Select _All");
-        gtk_menu_append (GTK_MENU(viewer->event_handlers_menu), select_all_mi);
+        gtk_menu_shell_append (GTK_MENU_SHELL(viewer->event_handlers_menu), select_all_mi);
         gtk_widget_show (select_all_mi);
-        
+
         // remove all item
         GtkWidget *select_none_mi = 
             gtk_menu_item_new_with_mnemonic ("Select _None");
-        gtk_menu_append (GTK_MENU(viewer->event_handlers_menu), select_none_mi);
+        gtk_menu_shell_append (GTK_MENU_SHELL(viewer->event_handlers_menu), select_none_mi);
         gtk_widget_show (select_none_mi);
         g_signal_connect (G_OBJECT (select_all_mi), "activate", 
                           G_CALLBACK (on_select_all_event_handlers_activate), viewer);
@@ -1273,7 +1285,7 @@ make_menus(BotViewer *viewer, GtkWidget *parent)
 
     //add perspective and orthographic controls...
     GtkWidget *view_menuitem = gtk_menu_item_new_with_mnemonic("_View");
-    gtk_menu_bar_append(GTK_MENU_BAR(viewer->menu_bar), view_menuitem);
+    gtk_menu_shell_append(GTK_MENU_SHELL(viewer->menu_bar), view_menuitem);
 
     viewer->view_menu = gtk_menu_new();
     gtk_menu_item_set_submenu(GTK_MENU_ITEM(view_menuitem), viewer->view_menu);
@@ -1281,36 +1293,36 @@ make_menus(BotViewer *viewer, GtkWidget *parent)
     GSList *view_list = NULL;
     GtkWidget *perspective_item = gtk_radio_menu_item_new_with_label(view_list, "Perspective");
     view_list = gtk_radio_menu_item_get_group(GTK_RADIO_MENU_ITEM(perspective_item));
-    gtk_menu_append(GTK_MENU(viewer->view_menu), perspective_item);
+    gtk_menu_shell_append(GTK_MENU_SHELL(viewer->view_menu), perspective_item);
     g_signal_connect(G_OBJECT(perspective_item), "activate", G_CALLBACK(on_select_perspective_item), viewer);
 
     GtkWidget *orthographic_item = gtk_radio_menu_item_new_with_label(view_list, "Orthographic");
     view_list = gtk_radio_menu_item_get_group(GTK_RADIO_MENU_ITEM(orthographic_item));
-    gtk_menu_append(GTK_MENU(viewer->view_menu), orthographic_item);
+    gtk_menu_shell_append(GTK_MENU_SHELL(viewer->view_menu), orthographic_item);
     g_signal_connect(G_OBJECT(orthographic_item), "activate", G_CALLBACK(on_select_orthographic_item), viewer);
 
     // create labels for loading and saving bookmarked views
     guint keys[] = {
-        GDK_F1,
-        GDK_F2,
-        GDK_F3,
-        GDK_F4,
-        GDK_F5,
-        GDK_F6,
+        GDK_KEY_F1,
+        GDK_KEY_F2,
+        GDK_KEY_F3,
+        GDK_KEY_F4,
+        GDK_KEY_F5,
+        GDK_KEY_F6,
     };
 
     for(int i=0; i<priv->num_bookmarks; i++) {
       char* smi_label = g_strdup_printf("Viewpoint %d", i + 1);
       GtkWidget* submenu_item = gtk_menu_item_new_with_label(smi_label);
-      gtk_menu_append(GTK_MENU(viewer->view_menu), submenu_item);
+      gtk_menu_shell_append(GTK_MENU_SHELL(viewer->view_menu), submenu_item);
       g_free(smi_label);
 
       GtkWidget* submenu = gtk_menu_new();
       gtk_menu_item_set_submenu(GTK_MENU_ITEM(submenu_item), submenu);
       GtkWidget* save_smi = gtk_menu_item_new_with_label("Save");
       GtkWidget* load_smi = gtk_menu_item_new_with_label("Load");
-      gtk_menu_append(GTK_MENU(submenu), save_smi);
-      gtk_menu_append(GTK_MENU(submenu), load_smi);
+      gtk_menu_shell_append(GTK_MENU_SHELL(submenu), save_smi);
+      gtk_menu_shell_append(GTK_MENU_SHELL(submenu), load_smi);
       g_signal_connect(G_OBJECT(save_smi), "activate", 
               G_CALLBACK(on_select_bookmark_save_view), &priv->bookmarks[i]);
       g_signal_connect(G_OBJECT(load_smi), "activate", 
@@ -1338,10 +1350,8 @@ make_toolbar(BotViewer *viewer, GtkWidget *parent)
         gtk_toggle_tool_button_new_from_stock (GTK_STOCK_MEDIA_RECORD));
     gtk_tool_item_set_is_important (GTK_TOOL_ITEM (viewer->record_button), 
             TRUE);
-    gtk_tool_item_set_tooltip (GTK_TOOL_ITEM (viewer->record_button), 
-            viewer->tips,
-            "Record an AVI of the viewport, saved in the current directory",
-            NULL);
+    gtk_tool_item_set_tooltip_text(GTK_TOOL_ITEM (viewer->record_button), 
+            "Record an AVI of the viewport, saved in the current directory");
 
     gtk_toolbar_insert (GTK_TOOLBAR (toolbar), 
             GTK_TOOL_ITEM (viewer->record_button), 0);
@@ -1353,9 +1363,8 @@ make_toolbar(BotViewer *viewer, GtkWidget *parent)
     GtkToolItem *ssbt = gtk_tool_button_new_from_stock (GTK_STOCK_FLOPPY);
     gtk_tool_button_set_label (GTK_TOOL_BUTTON (ssbt), "Screenshot");
     gtk_tool_item_set_is_important (GTK_TOOL_ITEM (ssbt), TRUE);
-    gtk_tool_item_set_tooltip (GTK_TOOL_ITEM (ssbt), viewer->tips,
-            "Save a PPM screenshot of the viewport to the current directory",
-            NULL);
+    gtk_tool_item_set_tooltip_text (GTK_TOOL_ITEM (ssbt),
+            "Save a PPM screenshot of the viewport to the current directory");
     gtk_toolbar_insert (GTK_TOOLBAR (toolbar), ssbt, 1);
     gtk_widget_show (GTK_WIDGET (ssbt));
     g_signal_connect (G_OBJECT (ssbt), "clicked", 
@@ -1363,8 +1372,7 @@ make_toolbar(BotViewer *viewer, GtkWidget *parent)
 
     // quit button
     GtkToolItem *quitbt = gtk_tool_button_new_from_stock (GTK_STOCK_QUIT);
-    gtk_tool_item_set_tooltip (GTK_TOOL_ITEM (quitbt), viewer->tips,
-            "Quit", NULL);
+    gtk_tool_item_set_tooltip_text (GTK_TOOL_ITEM (quitbt), "Quit");
     gtk_toolbar_insert (GTK_TOOLBAR (toolbar), quitbt, 2);
     gtk_widget_show (GTK_WIDGET (quitbt));
     g_signal_connect (G_OBJECT (quitbt), "clicked", gtk_main_quit, NULL);
@@ -1373,7 +1381,7 @@ make_toolbar(BotViewer *viewer, GtkWidget *parent)
     gtk_widget_show (GTK_WIDGET (sep));
     gtk_toolbar_insert (GTK_TOOLBAR (toolbar), sep, 3);
 
-    GtkWidget * hbox = gtk_hbox_new (FALSE, 5);
+    GtkWidget * hbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 5);
     GtkWidget * label = gtk_label_new ("Record FPS");
     gtk_box_pack_start (GTK_BOX (hbox), label, FALSE, FALSE, 0);
     viewer->fps_spin = gtk_spin_button_new_with_range (0.1, 120.0, 1.0);
@@ -1510,7 +1518,7 @@ bot_viewer_init (BotViewer *viewer)
     gtk_window_set_default_size(GTK_WINDOW(viewer->window), 800, 540);
 #endif
 
-    GtkWidget *vbox = gtk_vbox_new(FALSE, 0);
+    GtkWidget *vbox =  gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
     gtk_container_add(GTK_CONTAINER(viewer->window), vbox);
 
     // keyboard accelerators for viewer
@@ -1519,14 +1527,13 @@ bot_viewer_init (BotViewer *viewer)
 
     make_menus(viewer, vbox);
 
-    viewer->tips = gtk_tooltips_new ();
     make_toolbar(viewer, vbox);
 
 
 #ifdef CONTROLS_BOX_LEFT_ENABLED
     // Embed the original viewing pane inside a second hpaned so as to add controls on the right:
     // GTK pan is then split like this:  [   left ctrl box        |[    gl pan  |right ctrl box]]
-    GtkWidget *hpaned_main = gtk_hpaned_new();
+    GtkWidget *hpaned_main = gtk_paned_new(GTK_ORIENTATION_HORIZONTAL);
 
     // Newer control box on the left:
     GtkWidget *controls_align1 = gtk_alignment_new(.5, .5, 1, 1);
@@ -1538,11 +1545,11 @@ bot_viewer_init (BotViewer *viewer)
     GtkWidget *controls_view1 = gtk_viewport_new(NULL, NULL);
     gtk_container_add(GTK_CONTAINER(controls_scroll1), controls_view1);
 
-    viewer->controls_box_left = gtk_vbox_new(FALSE, 0);
+    viewer->controls_box_left = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
     gtk_container_add(GTK_CONTAINER(controls_view1), viewer->controls_box_left);
 
     // Original hpan on the right:
-    GtkWidget *hpaned_right = gtk_hpaned_new();
+    GtkWidget *hpaned_right = gtk_paned_new(GTK_ORIENTATION_HORIZONTAL);
     gtk_paned_pack2(GTK_PANED(hpaned_main), hpaned_right, FALSE, TRUE);
 
     // within original put GL pan on left:
@@ -1561,7 +1568,7 @@ bot_viewer_init (BotViewer *viewer)
 
 #else
 
-    GtkWidget *hpaned = gtk_hpaned_new();
+    GtkWidget *hpaned = gtk_paned_new(GTK_ORIENTATION_HORIZONTAL);
 
     gtk_box_pack_start(GTK_BOX(vbox), hpaned, TRUE, TRUE, 0);
 
@@ -1581,7 +1588,7 @@ bot_viewer_init (BotViewer *viewer)
     GtkWidget *controls_view = gtk_viewport_new(NULL, NULL);
     gtk_container_add(GTK_CONTAINER(controls_scroll), controls_view);
 
-    viewer->controls_box = gtk_vbox_new(FALSE, 0);
+    viewer->controls_box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
     gtk_container_add(GTK_CONTAINER(controls_view), viewer->controls_box);
 
 

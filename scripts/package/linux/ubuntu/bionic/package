@@ -14,7 +14,7 @@ readonly timestamp=$(date -u +%Y%m%d)
 rm -f lcm_1.4.0-1_amd64.deb libbot2_0.0.1.*-1_amd64.deb
 
 docker build --tag libbot2-bionic-prereqs $(git rev-parse --show-toplevel)/scripts/setup/linux/ubuntu/bionic/
-docker run --detach --name libbot2-bionic --env CPACK_LIBPNG_VERSION=16-16 --env PACKAGE_OPENGL=TRUE --tty libbot2-bionic-prereqs
+docker run --detach --name libbot2-bionic --tty libbot2-bionic-prereqs
 trap 'docker stop libbot2-bionic && docker rm libbot2-bionic' EXIT
 docker cp $(git rev-parse --show-toplevel) libbot2-bionic:/tmp/libbot2
 docker exec libbot2-bionic /tmp/libbot2/scripts/package/linux/ubuntu/common/build.sh ${timestamp}

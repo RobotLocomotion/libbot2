@@ -231,7 +231,7 @@ if printOutput:
     if printFname == "stdout":
         printFile = sys.stdout
     else:
-        printFile = open(printFname, "w")
+        printFile = open(printFname, "wb")
 else:
     sys.stderr.write("opened % s, outputing to % s\n" % (fname, outFname))
 
@@ -337,7 +337,7 @@ if not printOutput:
         scipy.io.matlab.mio.savemat(outFname, data, oned_as='row')
 
     
-    mfile = open(dirname + "/" + outBaseName + ".m", "w")
+    mfile = open(dirname + "/" + outBaseName + ".m", "wb")
     loadFunc = """function [d imFnames]=%s()
 full_fname = '%s';
 fname = '%s';

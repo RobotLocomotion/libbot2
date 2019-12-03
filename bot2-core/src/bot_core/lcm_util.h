@@ -76,7 +76,7 @@ int bot_glib_mainloop_attach_lcm_full(GMainLoop * mainloop, lcm_t *lcm,
  * lcm_t instance via lcm_create(provider). Every subsequent call just returns
  * the same lcm_t instance.
  *
- * This function is thread-safe, if g_thread_init() has been called.
+ * This function is thread-safe.
  *
  * Returns: pointer to lcm_t
  */

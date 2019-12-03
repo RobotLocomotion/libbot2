@@ -21,7 +21,7 @@ depend on others. The current list of PODs is:
                   core message types (LCM types).
 
   bot2-vis        C library of classes and functions for visualizing data with
-                  OpenGL and GTK2.
+                  OpenGL and GTK3.
 
   bot2-lcmgl      Transmitting and rendering OpenGL commands over LCM.
 
@@ -41,7 +41,7 @@ Requirements
     LCM         (https://lcm-proj.github.io/)
     Java        (Sun JDK or OpenJDK strongly preferred)
     Python
-    GTK+ 2.0+   (required by bot2-vis)
+    GTK+ 3.0+   (required by bot2-vis)
     OpenGL      (required by bot2-vis)
     GLUT
     PyGTK

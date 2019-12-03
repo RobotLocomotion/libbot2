@@ -6,7 +6,6 @@
 #include <glib.h>
 #include <glib-object.h>
 #include <gtk/gtk.h>
-#include <gtk/gtksignal.h>
 
 #include "param_widget.h"
 
@@ -42,7 +41,7 @@ typedef struct _param_data {
     double max_double;
 } param_data_t;
 
-static param_data_t * 
+static param_data_t *
 param_data_new(const char *name, GtkWidget *widget, GType data_type)
 {
     param_data_t *pdata = g_slice_new(param_data_t);
@@ -89,7 +88,7 @@ bot_gtk_param_widget_class_init (BotGtkParamWidgetClass *klass)
             0,
             NULL,
             NULL,
-            gtk_marshal_VOID__STRING,
+            NULL,
             G_TYPE_NONE, 1, G_TYPE_STRING);
 }
 
@@ -125,24 +124,24 @@ bot_gtk_param_widget_new (void)
     return GTK_WIDGET (g_object_new (BOT_GTK_TYPE_PARAM_WIDGET, NULL));
 }
 
-static inline param_data_t * 
+static inline param_data_t *
 get_param_data(BotGtkParamWidget * pw, const char *name)
 {
     GtkWidget *w = g_hash_table_lookup (pw->params, name);
     if(!w)
         return NULL;
-    param_data_t *pd = 
+    param_data_t *pd =
         (param_data_t*) g_hash_table_lookup (pw->widget_to_param, w);
     return pd;
 }
 
-static inline param_data_t * 
+static inline param_data_t *
 get_param_data_check_type(BotGtkParamWidget * pw, const char *name, GType data_type)
 {
     GtkWidget *w = g_hash_table_lookup (pw->params, name);
     if(!w)
         return NULL;
-    param_data_t *pd = 
+    param_data_t *pd =
         (param_data_t*) g_hash_table_lookup (pw->widget_to_param, w);
     if(pd->data_type != data_type) {
         g_warning("bot_gtk_param_widget:  param [%s] is not type %s\n",
@@ -162,17 +161,17 @@ static void
 generic_widget_changed (GtkWidget *w, gpointer user_data)
 {
     BotGtkParamWidget *pw = BOT_GTK_PARAM_WIDGET(user_data);
-    param_data_t *pd = 
+    param_data_t *pd =
         (param_data_t*) g_hash_table_lookup (pw->widget_to_param, w);
-    g_signal_emit (G_OBJECT (pw), 
+    g_signal_emit (G_OBJECT (pw),
             bot_gtk_param_widget_signals[CHANGED_SIGNAL], 0, pd->name);
 }
 
-static param_data_t * 
+static param_data_t *
 add_row (BotGtkParamWidget *pw, const char *name,
         GtkWidget *w, const char *signal_name, GType data_type)
 {
-    GtkWidget *hb = gtk_hbox_new (FALSE, 0);
+    GtkWidget *hb = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 0);
     GtkWidget *lbl = gtk_label_new (name);
     gtk_box_pack_start (GTK_BOX (hb), lbl, FALSE, FALSE, 0);
     gtk_box_pack_start (GTK_BOX (hb), w, TRUE, TRUE, 0);
@@ -197,7 +196,7 @@ add_row (BotGtkParamWidget *pw, const char *name,
 }
 
 int
-bot_gtk_param_widget_add_int(BotGtkParamWidget *pw, const char *name, 
+bot_gtk_param_widget_add_int(BotGtkParamWidget *pw, const char *name,
         BotGtkParamWidgetUIHint ui_hints,
         int min, int max, int increment, int initial_value)
 {
@@ -221,7 +220,7 @@ bot_gtk_param_widget_add_int(BotGtkParamWidget *pw, const char *name,
         default:
             err("ERROR: param_widget_add_int - bad ui_hints\n");
             return -1;
-    } 
+    }
     g_object_set_data (G_OBJECT(w), "data-type", "int");
     add_row (pw, name, w, "value-changed", G_TYPE_INT);
     return 0;
@@ -229,7 +228,7 @@ bot_gtk_param_widget_add_int(BotGtkParamWidget *pw, const char *name,
 
 double bot_gtk_param_widget_get_min_double(BotGtkParamWidget *pw,
         const char *name);
-double 
+double
 bot_gtk_param_widget_get_min_double(BotGtkParamWidget *pw,
         const char *name)
 {
@@ -241,7 +240,7 @@ bot_gtk_param_widget_get_min_double(BotGtkParamWidget *pw,
 
 double bot_gtk_param_widget_get_max_double(BotGtkParamWidget *pw,
         const char *name);
-double 
+double
 bot_gtk_param_widget_get_max_double(BotGtkParamWidget *pw,
         const char *name)
 {
@@ -252,7 +251,7 @@ bot_gtk_param_widget_get_max_double(BotGtkParamWidget *pw,
 }
 
 int bot_gtk_param_widget_add_double (BotGtkParamWidget *pw,
-        const char *name, BotGtkParamWidgetUIHint ui_hints, 
+        const char *name, BotGtkParamWidgetUIHint ui_hints,
         double min, double max, double increment, double initial_value)
 {
     if (have_parameter_key (pw, name)) return -1;
@@ -275,8 +274,8 @@ int bot_gtk_param_widget_add_double (BotGtkParamWidget *pw,
         default:
             err("ERROR: param_widget_add_double - bad ui_hints\n");
             return -1;
-    } 
-    param_data_t * pdata = add_row (pw, name, w, "value-changed", 
+    }
+    param_data_t * pdata = add_row (pw, name, w, "value-changed",
             G_TYPE_DOUBLE);
     pdata->min_double = min;
     pdata->max_double = max;
@@ -289,8 +288,8 @@ int bot_gtk_param_widget_add_text_entry (BotGtkParamWidget *pw,
         const char *initial_value)
 {
     if (have_parameter_key (pw, name)) return -1;
-    
-    
+
+
     GtkWidget *w = NULL;
     switch(ui_hints) {
         case BOT_GTK_PARAM_WIDGET_ENTRY:
@@ -300,15 +299,15 @@ int bot_gtk_param_widget_add_text_entry (BotGtkParamWidget *pw,
         default:
             err("ERROR: param_widget_add_text_entry - bad ui_hints\n");
             return -1;
-    } 
-    param_data_t * pdata = add_row (pw, name, w, "value-changed", 
+    }
+    param_data_t * pdata = add_row (pw, name, w, "value-changed",
             G_TYPE_STRING);
     g_object_set_data (G_OBJECT(w), "data-type", "string");
     return 0;
 }
 
 static int
-add_checkboxes_helper (BotGtkParamWidget *pw, GtkBox *box, const char *name, 
+add_checkboxes_helper (BotGtkParamWidget *pw, GtkBox *box, const char *name,
         int checked)
 {
     if (have_parameter_key (pw, name)) return -1;
@@ -331,11 +330,11 @@ add_checkboxes_helper (BotGtkParamWidget *pw, GtkBox *box, const char *name,
 }
 
 static int
-add_checkboxes (BotGtkParamWidget *pw, 
+add_checkboxes (BotGtkParamWidget *pw,
         const char *name1, int initally_checked1,
         va_list ap)
 {
-    GtkBox *hb = GTK_BOX (gtk_hbox_new (FALSE, 0));
+    GtkBox *hb = GTK_BOX (gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 0));
 
     int status;
     status = add_checkboxes_helper (pw, hb, name1, initally_checked1);
@@ -361,7 +360,7 @@ add_checkboxes (BotGtkParamWidget *pw,
 }
 
 static int
-add_togglebuttons_helper (BotGtkParamWidget *pw, GtkBox *box, const char *name, 
+add_togglebuttons_helper (BotGtkParamWidget *pw, GtkBox *box, const char *name,
         int checked)
 {
     if (have_parameter_key (pw, name)) return -1;
@@ -384,11 +383,11 @@ add_togglebuttons_helper (BotGtkParamWidget *pw, GtkBox *box, const char *name,
 }
 
 static int
-add_togglebuttons (BotGtkParamWidget *pw, 
+add_togglebuttons (BotGtkParamWidget *pw,
         const char *name1, int initally_checked1,
         va_list ap)
 {
-    GtkBox *hb = GTK_BOX (gtk_hbox_new (FALSE, 0));
+    GtkBox *hb = GTK_BOX (gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 0));
 
     int status;
     status = add_togglebuttons_helper (pw, hb, name1, initally_checked1);
@@ -413,7 +412,7 @@ add_togglebuttons (BotGtkParamWidget *pw,
     return 0;
 }
 
-int bot_gtk_param_widget_add_booleans (BotGtkParamWidget *pw, 
+int bot_gtk_param_widget_add_booleans (BotGtkParamWidget *pw,
         BotGtkParamWidgetUIHint ui_hints,
         const char *name1, int initally_checked1,
         ...)
@@ -459,11 +458,11 @@ add_buttons_helper (BotGtkParamWidget *pw, GtkBox *box, const char *name)
 }
 
 static int
-add_buttons (BotGtkParamWidget *pw, 
-        const char *name1, 
+add_buttons (BotGtkParamWidget *pw,
+        const char *name1,
         va_list ap)
 {
-    GtkBox *hb = GTK_BOX (gtk_hbox_new (FALSE, 0));
+    GtkBox *hb = GTK_BOX (gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 0));
 
     int status;
     status = add_buttons_helper (pw, hb, name1);
@@ -486,7 +485,7 @@ add_buttons (BotGtkParamWidget *pw,
     return 0;
 }
 
-int bot_gtk_param_widget_add_buttons (BotGtkParamWidget *pw, 
+int bot_gtk_param_widget_add_buttons (BotGtkParamWidget *pw,
         const char *name1, ...)
 {
     int status = -1;
@@ -526,7 +525,7 @@ _add_menu (BotGtkParamWidget *pw, const char *name, int initial_value,
     return 0;
 }
 
-int 
+int
 bot_gtk_param_widget_add_enumv (BotGtkParamWidget *pw,
         const char *name, BotGtkParamWidgetUIHint ui_hints, int initial_value,
         int noptions, const char **names, const int *values)
@@ -534,7 +533,7 @@ bot_gtk_param_widget_add_enumv (BotGtkParamWidget *pw,
     switch (ui_hints) {
         case BOT_GTK_PARAM_WIDGET_MENU:
         case BOT_GTK_PARAM_WIDGET_DEFAULTS:
-            return _add_menu (pw, name, initial_value, 
+            return _add_menu (pw, name, initial_value,
                     noptions, names, values);
             break;
         default:
@@ -543,7 +542,7 @@ bot_gtk_param_widget_add_enumv (BotGtkParamWidget *pw,
     return -1;
 }
 
-int 
+int
 bot_gtk_param_widget_add_enum (BotGtkParamWidget *pw,
         const char *name, BotGtkParamWidgetUIHint ui_hints, int initial_value,
         const char *string1, int value1, ...)
@@ -566,8 +565,8 @@ bot_gtk_param_widget_add_enum (BotGtkParamWidget *pw,
     }
     va_end (ap);
 
-    int status = bot_gtk_param_widget_add_enumv (pw, name, ui_hints, 
-            initial_value, names->len, (const char **)names->pdata, 
+    int status = bot_gtk_param_widget_add_enumv (pw, name, ui_hints,
+            initial_value, names->len, (const char **)names->pdata,
             (int*) values->data);
     for (int i=0; i<values->len; i++) free (g_ptr_array_index (names, i));
     g_ptr_array_free (names, TRUE);
@@ -576,7 +575,7 @@ bot_gtk_param_widget_add_enum (BotGtkParamWidget *pw,
     return status;
 }
 
-void 
+void
 bot_gtk_param_widget_add_separator (BotGtkParamWidget *pw, const char *text)
 {
     if (!text) {
@@ -584,7 +583,7 @@ bot_gtk_param_widget_add_separator (BotGtkParamWidget *pw, const char *text)
         gtk_box_pack_start (GTK_BOX (&pw->vbox), sep , FALSE, FALSE, 0);
         gtk_widget_show_all(sep);
     } else {
-        GtkWidget *b = gtk_hbox_new(FALSE, 0);
+        GtkWidget *b = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
         gtk_box_pack_start(GTK_BOX(b), gtk_hseparator_new(), TRUE, TRUE, 0);
         gtk_box_pack_start(GTK_BOX(b), gtk_label_new(text), FALSE, FALSE, 0);
         gtk_box_pack_start(GTK_BOX(b), gtk_hseparator_new(), TRUE, TRUE, 0);
@@ -709,7 +708,7 @@ bot_gtk_param_widget_get_enum_str (BotGtkParamWidget *pw, const char *name)
     return NULL;
 }
 
-int 
+int
 bot_gtk_param_widget_get_enum (BotGtkParamWidget *pw, const char *name)
 {
     if (! have_parameter_key (pw, name)) {
@@ -735,8 +734,8 @@ bot_gtk_param_widget_get_enum (BotGtkParamWidget *pw, const char *name)
     return -1;
 }
 
-void 
-bot_gtk_param_widget_set_int (BotGtkParamWidget *pw, const char *name, 
+void
+bot_gtk_param_widget_set_int (BotGtkParamWidget *pw, const char *name,
         int val)
 {
     if (! have_parameter_key (pw, name)) {
@@ -753,7 +752,7 @@ bot_gtk_param_widget_set_int (BotGtkParamWidget *pw, const char *name,
     }
 }
 
-void 
+void
 bot_gtk_param_widget_set_double (BotGtkParamWidget *pw, const char *name,
         double val)
 {
@@ -771,7 +770,7 @@ bot_gtk_param_widget_set_double (BotGtkParamWidget *pw, const char *name,
     }
 }
 
-void 
+void
 bot_gtk_param_widget_set_bool (BotGtkParamWidget *pw, const char *name,
         int val)
 {
@@ -799,7 +798,7 @@ activate_if_matched (GtkTreeModel *model, GtkTreePath *path, GtkTreeIter *iter,
 
     int entry_val;
     gtk_tree_model_get (model, iter, 1, &entry_val, -1);
-    
+
     if (entry_val == md->val) {
         gtk_combo_box_set_active_iter (md->combo, iter);
         return TRUE;
@@ -807,7 +806,7 @@ activate_if_matched (GtkTreeModel *model, GtkTreePath *path, GtkTreeIter *iter,
     return FALSE;
 }
 
-void 
+void
 bot_gtk_param_widget_set_enum (BotGtkParamWidget *pw, const char *name,
         int val)
 {
@@ -820,14 +819,14 @@ bot_gtk_param_widget_set_enum (BotGtkParamWidget *pw, const char *name,
     if (GTK_TYPE_COMBO_BOX == type) {
         GtkTreeModel *model = gtk_combo_box_get_model (GTK_COMBO_BOX(w));
         tree_model_match_data_t matchdata = {
-            val, 
+            val,
             GTK_COMBO_BOX(w)
         };
         gtk_tree_model_foreach (model, activate_if_matched, &matchdata);
     }
 }
 
-void 
+void
 bot_gtk_param_widget_set_enabled (BotGtkParamWidget *pw, const char *name,
         int enabled)
 {
@@ -887,8 +886,8 @@ _param_load_from_keyfile (void *key, void *value, void *user_data)
     }
 }
 
-void 
-bot_gtk_param_widget_load_from_key_file (BotGtkParamWidget *pw, 
+void
+bot_gtk_param_widget_load_from_key_file (BotGtkParamWidget *pw,
         GKeyFile *keyfile, const char *group_name)
 {
     _keyfile_data_t data = {
@@ -927,7 +926,7 @@ _param_save_to_keyfile (void *key, void *value, void *user_data)
     }
 }
 
-void 
+void
 bot_gtk_param_widget_save_to_key_file (BotGtkParamWidget *pw,
         GKeyFile *keyfile, const char *group_name)
 {
@@ -939,7 +938,7 @@ bot_gtk_param_widget_save_to_key_file (BotGtkParamWidget *pw,
     g_hash_table_foreach (pw->params, _param_save_to_keyfile, &data);
 }
 
-int 
+int
 bot_gtk_param_widget_modify_int(BotGtkParamWidget *pw,
         const char *name, int min, int max, int increment, int value)
 {

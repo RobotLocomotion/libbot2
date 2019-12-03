@@ -26,7 +26,7 @@
 # Distributed with pods version: 12.09.21
 
 # pods_install_headers(<header1.h> ... DESTINATION <subdir_name>)
-# 
+#
 # Install a (list) of header files.
 #
 # Header files will all be installed to include/<subdir_name>
@@ -75,13 +75,13 @@ function(pods_install_libraries _export _export_name)
     install(TARGETS ${ARGN} EXPORT ${_export_name} LIBRARY DESTINATION lib ARCHIVE DESTINATION lib)
 endfunction(pods_install_libraries)
 
-# pods_install_pkg_config_file(<package-name> 
+# pods_install_pkg_config_file(<package-name>
 #                              [VERSION <version>]
 #                              [DESCRIPTION <description>]
 #                              [CFLAGS <cflag> ...]
 #                              [LIBS <lflag> ...]
 #                              [REQUIRES <required-package-name> ...])
-# 
+#
 # Create and install a pkg-config .pc file.
 #
 # example:
@@ -90,14 +90,14 @@ endfunction(pods_install_libraries)
 function(pods_install_pkg_config_file)
     list(GET ARGV 0 pc_name)
     # TODO error check
-    
+
     set(pc_version 0.0.1)
     set(pc_description ${pc_name})
     set(pc_requires "")
     set(pc_libs "")
     set(pc_cflags "")
     set(pc_fname "${PKG_CONFIG_OUTPUT_PATH}/${pc_name}.pc")
-    
+
     set(modewords LIBS CFLAGS REQUIRES VERSION DESCRIPTION)
     set(curmode "")
 
@@ -141,7 +141,7 @@ function(pods_install_pkg_config_file)
 
     # mark the .pc file for installation to the lib/pkgconfig directory
     install(FILES ${pc_fname} DESTINATION lib/pkgconfig)
-    
+
 endfunction(pods_install_pkg_config_file)
 
 
@@ -152,9 +152,9 @@ endfunction(pods_install_pkg_config_file)
 #
 # A launcher script will be installed to bin/<script_name>. The script simply
 # adds <install-prefix>/lib/pythonX.Y/dist-packages
-# and  <install-prefix>/lib/pythonX.Y/site-packages 
-# to the PYTHONPATH, and then 
-# invokes `python -m <python_module>` or `python python_file` 
+# and  <install-prefix>/lib/pythonX.Y/site-packages
+# to the PYTHONPATH, and then
+# invokes `python -m <python_module>` or `python python_file`
 # depending on whether the function was passed a module name or script file.
 #
 # example:
@@ -162,29 +162,29 @@ endfunction(pods_install_pkg_config_file)
 #    pods_install_python_script(run-py-script py_script.py)
 function(pods_install_python_script script_name python_module_or_file)
     if (python_module_or_file MATCHES ".+\\.py") #ends with a .py
-        get_filename_component(py_file ${python_module_or_file} ABSOLUTE)     
-            
+        get_filename_component(py_file ${python_module_or_file} ABSOLUTE)
+
         if (NOT EXISTS ${py_file})
             message(FATAL_ERROR "${python_module_or_file} is not an absolute or relative path to a python script")
         endif()
-        
+
         #get the directory where we'll install the script ${sanitized_POD_NAME}_scripts
         string(REGEX REPLACE "[^a-zA-Z0-9]" "_" __sanitized_pod_name "${POD_NAME}")
         set(pods_scripts_dir "${PYTHON_INSTALL_PATH}/${__sanitized_pod_name}_scripts")
-                
+
         # install the python script file
         install(FILES ${py_file}  DESTINATION "${pods_scripts_dir}")
 
         get_filename_component(py_script_name ${py_file} NAME)
         # write the bash script file
-        file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/${script_name} 
+        file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/${script_name}
             "#!/bin/sh\n"
             "export PYTHONPATH=${PYTHON_INSTALL_PATH}:\${PYTHONPATH}\n"
-            "exec ${PYTHON_EXECUTABLE} ${pods_scripts_dir}/${py_script_name} $*\n")    
+            "exec ${PYTHON_EXECUTABLE} ${pods_scripts_dir}/${py_script_name} $*\n")
     else()
         get_filename_component(py_module ${python_module_or_file} NAME) #todo: check whether module exists?
         # write the bash script file
-        file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/${script_name} 
+        file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/${script_name}
             "#!/bin/sh\n"
             "export PYTHONPATH=${PYTHON_INSTALL_PATH}:\${PYTHONPATH}\n"
             "exec ${PYTHON_EXECUTABLE} -m ${py_module} $*\n")
@@ -221,23 +221,23 @@ endfunction()
 # the current python version (e.g., 2.6)
 #
 # For each <src_dir> pass in, it will do the following:
-# If <src_dir> is a python package (it has a __init__.py file) it will be installed 
+# If <src_dir> is a python package (it has a __init__.py file) it will be installed
 # along with any .py files in subdirectories
 #
 # Otherwise the script searches for and installs any python packages in <src_dir>
 function(pods_install_python_packages py_src_dir)
     get_filename_component(py_src_abs_dir ${py_src_dir} ABSOLUTE)
     if(ARGC GREATER 1)
-        #install each module seperately 
-        foreach(py_module ${ARGV}) 
+        #install each module seperately
+        foreach(py_module ${ARGV})
             pods_install_python_packages(${py_module})
         endforeach()
     elseif(EXISTS "${py_src_abs_dir}/__init__.py")
         #install the single module by name
-        get_filename_component(py_module_name ${py_src_abs_dir} NAME) 
-        _pods_install_python_package(${py_src_abs_dir} ${py_module_name})            
+        get_filename_component(py_module_name ${py_src_abs_dir} NAME)
+        _pods_install_python_package(${py_src_abs_dir} ${py_module_name})
     else()
-        # install any packages within the passed in py_src_dir 
+        # install any packages within the passed in py_src_dir
         set(_installed_a_package FALSE)
         file(GLOB sub-dirs RELATIVE ${py_src_abs_dir} ${py_src_abs_dir}/*)
         foreach(sub-dir ${sub-dirs})
@@ -272,20 +272,20 @@ macro(pods_use_pkg_config_packages target)
         message(WARNING "Useless invocation of pods_use_pkg_config_packages")
         return()
     endif()
-    find_package(PkgConfig REQUIRED)
-    execute_process(COMMAND 
+    find_package(PkgConfig MODULE REQUIRED)
+    execute_process(COMMAND
         ${PKG_CONFIG_EXECUTABLE} --cflags-only-I ${ARGN}
         OUTPUT_VARIABLE _pods_pkg_include_flags)
     string(STRIP ${_pods_pkg_include_flags} _pods_pkg_include_flags)
     string(REPLACE "-I" "" _pods_pkg_include_flags "${_pods_pkg_include_flags}")
 	separate_arguments(_pods_pkg_include_flags)
     #    message("include: ${_pods_pkg_include_flags}")
-    execute_process(COMMAND 
+    execute_process(COMMAND
         ${PKG_CONFIG_EXECUTABLE} --libs ${ARGN}
         OUTPUT_VARIABLE _pods_pkg_ldflags)
     string(STRIP ${_pods_pkg_ldflags} _pods_pkg_ldflags)
     #    message("ldflags: ${_pods_pkg_ldflags}")
-    
+
     # make the target depend on libraries that are cmake targets
     if (_pods_pkg_ldflags)
         string(REPLACE " " ";" _split_ldflags ${_pods_pkg_ldflags})
@@ -349,7 +349,7 @@ macro(pods_config_search_paths)
 	    set(INCLUDE_INSTALL_PATH ${CMAKE_INSTALL_PREFIX}/include)
       set(PKG_CONFIG_INSTALL_PATH ${LIBRARY_INSTALL_PATH}/pkgconfig)
 
-      find_package(PythonInterp REQUIRED)
+      find_package(PythonInterp 3.6 MODULE REQUIRED)
       execute_process(
         COMMAND "${PYTHON_EXECUTABLE}" -c "from distutils import sysconfig as sc; print(sc.get_python_lib(prefix='', plat_specific=True))"
         OUTPUT_VARIABLE PYTHON_SITE_PACKAGES_DIR
@@ -359,8 +359,8 @@ macro(pods_config_search_paths)
 
       set(CMAKE_INSTALL_RPATH "${LIBRARY_INSTALL_PATH}")
       set(CMAKE_INSTALL_RPATH_USE_LINK_PATH ON)
-        
-        # hack to force cmake always create install and clean targets 
+
+        # hack to force cmake always create install and clean targets
         install(FILES DESTINATION)
         string(RANDOM LENGTH 32 __rand_target__name__)
         add_custom_target(${__rand_target__name__})
@@ -372,13 +372,13 @@ endmacro(pods_config_search_paths)
 
 macro(enforce_out_of_source)
     if(CMAKE_BINARY_DIR STREQUAL PROJECT_SOURCE_DIR)
-      message(FATAL_ERROR 
+      message(FATAL_ERROR
       "\n
-      Do not run cmake directly in the pod directory. 
+      Do not run cmake directly in the pod directory.
       use the supplied Makefile instead!  You now need to
       remove CMakeCache.txt and the CMakeFiles directory.
 
-      Then to build, simply type: 
+      Then to build, simply type:
        $ make
       ")
     endif()
@@ -387,7 +387,7 @@ endmacro(enforce_out_of_source)
 #set the variable POD_NAME to the directory path, and set the cmake PROJECT_NAME
 if(NOT POD_NAME)
     get_filename_component(POD_NAME ${CMAKE_SOURCE_DIR} NAME)
-    message(STATUS "POD_NAME is not set... Defaulting to directory name: ${POD_NAME}") 
+    message(STATUS "POD_NAME is not set... Defaulting to directory name: ${POD_NAME}")
 endif(NOT POD_NAME)
 project(${POD_NAME})
 

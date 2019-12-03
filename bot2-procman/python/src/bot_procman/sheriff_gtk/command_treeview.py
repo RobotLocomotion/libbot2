@@ -1,20 +1,21 @@
-import gtk
-import pango
+from gi.repository import Gdk
+from gi.repository import Gtk
+from gi.repository import Pango
 
 import bot_procman.sheriff as sheriff
 import bot_procman.sheriff_gtk.command_model as cm
 import bot_procman.sheriff_gtk.sheriff_dialogs as sd
 
-class SheriffCommandTreeView(gtk.TreeView):
+class SheriffCommandTreeView(Gtk.TreeView):
     def __init__(self, _sheriff, cmds_ts):
         super(SheriffCommandTreeView, self).__init__(cmds_ts)
         self.cmds_ts = cmds_ts
         self.sheriff = _sheriff
 
-        cmds_tr = gtk.CellRendererText ()
-        cmds_tr.set_property ("ellipsize", pango.ELLIPSIZE_END)
-        plain_tr = gtk.CellRendererText ()
-        status_tr = gtk.CellRendererText ()
+        cmds_tr = Gtk.CellRendererText ()
+        cmds_tr.set_property ("ellipsize", Pango.EllipsizeMode.END)
+        plain_tr = Gtk.CellRendererText ()
+        status_tr = Gtk.CellRendererText ()
 
         cols_to_make = [ \
             ("Id",       cmds_tr,   cm.COL_CMDS_TV_COMMAND_ID,  None),
@@ -27,15 +28,15 @@ class SheriffCommandTreeView(gtk.TreeView):
 
         self.columns = []
         for command_id, renderer, col_id, cell_data_func in cols_to_make:
-            col = gtk.TreeViewColumn(command_id, renderer, text=col_id)
+            col = Gtk.TreeViewColumn(command_id, renderer, text=col_id)
             col.set_sort_column_id(col_id)
-            col.set_data("col-id", col_id)
+            col.col_id = col_id;
             if cell_data_func:
                 col.set_cell_data_func(renderer, cell_data_func)
             self.columns.append(col)
 
         # set an initial width for the id column
-        self.columns[0].set_sizing(gtk.TREE_VIEW_COLUMN_FIXED)
+        self.columns[0].set_sizing(Gtk.TreeViewColumnSizing.FIXED)
         self.columns[0].set_fixed_width(150)
 
         for col in self.columns:
@@ -43,10 +44,10 @@ class SheriffCommandTreeView(gtk.TreeView):
             self.append_column (col)
 
         cmds_sel = self.get_selection ()
-        cmds_sel.set_mode (gtk.SELECTION_MULTIPLE)
+        cmds_sel.set_mode (Gtk.SelectionMode.MULTIPLE)
 
-        self.add_events (gtk.gdk.KEY_PRESS_MASK | \
-                gtk.gdk.BUTTON_PRESS | gtk.gdk._2BUTTON_PRESS)
+        self.add_events (Gdk.EventMask.KEY_PRESS_MASK | \
+                Gdk.EventType.BUTTON_PRESS | Gdk.EventType._2BUTTON_PRESS)
         self.connect ("key-press-event",
                 self._on_cmds_tv_key_press_event)
         self.connect ("button-press-event",
@@ -55,35 +56,35 @@ class SheriffCommandTreeView(gtk.TreeView):
                 self._on_cmds_tv_row_activated)
 
         # commands treeview context menu
-        self.cmd_ctxt_menu = gtk.Menu ()
+        self.cmd_ctxt_menu = Gtk.Menu ()
 
-        self.start_cmd_ctxt_mi = gtk.MenuItem ("_Start")
+        self.start_cmd_ctxt_mi = Gtk.MenuItem ("_Start")
         self.cmd_ctxt_menu.append (self.start_cmd_ctxt_mi)
         self.start_cmd_ctxt_mi.connect ("activate",
                 self._start_selected_commands)
 
-        self.stop_cmd_ctxt_mi = gtk.MenuItem ("_Stop")
+        self.stop_cmd_ctxt_mi = Gtk.MenuItem ("_Stop")
         self.cmd_ctxt_menu.append (self.stop_cmd_ctxt_mi)
         self.stop_cmd_ctxt_mi.connect ("activate", self._stop_selected_commands)
 
-        self.restart_cmd_ctxt_mi = gtk.MenuItem ("R_estart")
+        self.restart_cmd_ctxt_mi = Gtk.MenuItem ("R_estart")
         self.cmd_ctxt_menu.append (self.restart_cmd_ctxt_mi)
         self.restart_cmd_ctxt_mi.connect ("activate",
                 self._restart_selected_commands)
 
-        self.remove_cmd_ctxt_mi = gtk.MenuItem ("_Remove")
+        self.remove_cmd_ctxt_mi = Gtk.MenuItem ("_Remove")
         self.cmd_ctxt_menu.append (self.remove_cmd_ctxt_mi)
         self.remove_cmd_ctxt_mi.connect ("activate",
                 self._remove_selected_commands)
 
-        self.cmd_ctxt_menu.append (gtk.SeparatorMenuItem ())
+        self.cmd_ctxt_menu.append (Gtk.SeparatorMenuItem ())
 
-        self.edit_cmd_ctxt_mi = gtk.MenuItem ("_Edit")
+        self.edit_cmd_ctxt_mi = Gtk.MenuItem ("_Edit")
         self.cmd_ctxt_menu.append (self.edit_cmd_ctxt_mi)
         self.edit_cmd_ctxt_mi.connect ("activate",
                 self._edit_selected_command)
 
-        self.new_cmd_ctxt_mi = gtk.MenuItem ("_New Command")
+        self.new_cmd_ctxt_mi = Gtk.MenuItem ("_New Command")
         self.cmd_ctxt_menu.append (self.new_cmd_ctxt_mi)
         self.new_cmd_ctxt_mi.connect ("activate",
                 lambda *s: sd.do_add_command_dialog(self.sheriff, self.cmds_ts, self.get_toplevel()))
@@ -91,18 +92,18 @@ class SheriffCommandTreeView(gtk.TreeView):
         self.cmd_ctxt_menu.show_all ()
 
 #        # set some default appearance parameters
-#        self.base_color = gtk.gdk.Color(65535, 65535, 65535)
-#        self.text_color = gtk.gdk.Color(0, 0, 0)
+#        self.base_color = Gdk.Color(65535, 65535, 65535)
+#        self.text_color = Gdk.Color(0, 0, 0)
 #        self.set_background_color(self.base_color)
 #        self.set_text_color(self.text_color)
 
 #        # drag and drop command rows for grouping
 #        dnd_targets = [ ('PROCMAN_CMD_ROW',
-#            gtk.TARGET_SAME_APP | gtk.TARGET_SAME_WIDGET, 0) ]
-#        self.enable_model_drag_source (gtk.gdk.BUTTON1_MASK,
-#                dnd_targets, gtk.gdk.ACTION_MOVE)
+#            Gtk.TARGET_SAME_APP | Gtk.TARGET_SAME_WIDGET, 0) ]
+#        self.enable_model_drag_source (Gdk.BUTTON1_MASK,
+#                dnd_targets, Gdk.ACTION_MOVE)
 #        self.enable_model_drag_dest (dnd_targets,
-#                gtk.gdk.ACTION_MOVE)
+#                Gdk.ACTION_MOVE)
 
     def get_columns(self):
         return self.columns
@@ -122,19 +123,19 @@ class SheriffCommandTreeView(gtk.TreeView):
 #
 #    def set_background_color(self, color):
 #        self.base_color = color
-#        self.modify_base(gtk.STATE_NORMAL, color)
-#        self.modify_base(gtk.STATE_ACTIVE, color)
-#        self.modify_base(gtk.STATE_PRELIGHT, color)
+#        self.modify_base(Gtk.STATE_NORMAL, color)
+#        self.modify_base(Gtk.STATE_ACTIVE, color)
+#        self.modify_base(Gtk.STATE_PRELIGHT, color)
 #
 #    def set_text_color(self, color):
 #        self.text_color = color
-#        self.modify_text(gtk.STATE_NORMAL, color)
-#        self.modify_text(gtk.STATE_ACTIVE, color)
-#        self.modify_text(gtk.STATE_PRELIGHT, color)
+#        self.modify_text(Gtk.STATE_NORMAL, color)
+#        self.modify_text(Gtk.STATE_ACTIVE, color)
+#        self.modify_text(Gtk.STATE_PRELIGHT, color)
 
     def save_settings(self, save_map):
         for col in self.get_columns():
-            col_id = col.get_data("col-id")
+            col_id = col.col_id
 
             visible_key = "cmd_treeview:visible:%s" % col_id
             width_key = "cmd_treeview:width:%s" % col_id
@@ -146,7 +147,7 @@ class SheriffCommandTreeView(gtk.TreeView):
 
     def load_settings(self, save_map):
         for col in self.get_columns():
-            col_id = col.get_data("col-id")
+            col_id = col.col_id
 
             visible_key = "cmd_treeview:visible:%s" % col_id
             width_key = "cmd_treeview:width:%s" % col_id
@@ -157,15 +158,15 @@ class SheriffCommandTreeView(gtk.TreeView):
 
             width = save_map.get(width_key, 0)
             if width > 0:
-                col.set_sizing(gtk.TREE_VIEW_COLUMN_FIXED)
+                col.set_sizing(Gtk.TreeViewColumnSizing.FIXED)
                 col.set_fixed_width(width)
                 col.set_resizable(True)
 
 #        if "cmd_treeview_background_color" in save_map:
-#            self.set_background_color(gtk.gdk.Color(save_map["cmd_treeview_background_color"]))
+#            self.set_background_color(Gdk.Color(save_map["cmd_treeview_background_color"]))
 #
 #        if "cmd_treeview_text_color" in save_map:
-#            self.set_text_color(gtk.gdk.Color(save_map["cmd_treeview_text_color"]))
+#            self.set_text_color(Gdk.Color(save_map["cmd_treeview_text_color"]))
 
     def _start_selected_commands (self, *args):
         for cmd in self.get_selected_commands ():
@@ -188,7 +189,7 @@ class SheriffCommandTreeView(gtk.TreeView):
         self._do_edit_command_dialog(cmds)
 
     def _on_cmds_tv_key_press_event (self, widget, event):
-        if event.keyval == gtk.gdk.keyval_from_name ("Right"):
+        if event.keyval == Gdk.keyval_from_name ("Right"):
             # expand a group row when user presses right arrow key
             model, rows = self.get_selection ().get_selected_rows ()
             if len (rows) == 1:
@@ -196,7 +197,7 @@ class SheriffCommandTreeView(gtk.TreeView):
                 if model.iter_has_child (model_iter):
                     self.expand_row (rows[0], True)
                 return True
-        elif event.keyval == gtk.gdk.keyval_from_name ("Left"):
+        elif event.keyval == Gdk.keyval_from_name ("Left"):
             # collapse a group row when user presses left arrow key
             model, rows = self.get_selection ().get_selected_rows ()
             if len (rows) == 1:
@@ -212,7 +213,7 @@ class SheriffCommandTreeView(gtk.TreeView):
         return False
 
     def _on_cmds_tv_button_press_event (self, treeview, event):
-        if event.type == gtk.gdk.BUTTON_PRESS and event.button == 3:
+        if event.type == Gdk.EventType.BUTTON_PRESS and event.button == 3:
             time = event.time
             treeview.grab_focus ()
             sel = self.get_selection ()
@@ -252,9 +253,9 @@ class SheriffCommandTreeView(gtk.TreeView):
             self.edit_cmd_ctxt_mi.set_sensitive (can_modify)
             self.new_cmd_ctxt_mi.set_sensitive (can_add_load)
 
-            self.cmd_ctxt_menu.popup (None, None, None, event.button, time)
+            self.cmd_ctxt_menu.popup (None, None, None, None, event.button, time)
             return 1
-        elif event.type == gtk.gdk._2BUTTON_PRESS and event.button == 1:
+        elif event.type == Gdk.EventType._2BUTTON_PRESS and event.button == 1:
             # expand or collapse groups when double clicked
             sel = self.get_selection ()
             model, rows = sel.get_selected_rows ()
@@ -264,7 +265,7 @@ class SheriffCommandTreeView(gtk.TreeView):
                         self.collapse_row (rows[0])
                     else:
                         self.expand_row (rows[0], True)
-        elif event.type == gtk.gdk.BUTTON_PRESS and event.button == 1:
+        elif event.type == Gdk.EventType.BUTTON_PRESS and event.button == 1:
             # unselect all rows when the user clicks on empty space in the
             # commands treeview
             time = event.time
@@ -345,7 +346,7 @@ class SheriffCommandTreeView(gtk.TreeView):
                                          cur_stop_signal,
                                          cur_stop_time_allowed)
 
-        while dlg.run () == gtk.RESPONSE_ACCEPT:
+        while dlg.run () == Gtk.ResponseType.ACCEPT:
             new_exec_str = dlg.get_command()
             new_id = dlg.get_command_id()
             newdeputy = dlg.get_deputy()
@@ -368,9 +369,9 @@ class SheriffCommandTreeView(gtk.TreeView):
                 if not errmsg:
                     continue
 
-                errdlg = gtk.MessageDialog(dlg,
-                        gtk.DIALOG_MODAL|gtk.DIALOG_DESTROY_WITH_PARENT,
-                        gtk.MESSAGE_ERROR, gtk.BUTTONS_CLOSE)
+                errdlg = Gtk.MessageDialog(dlg,
+                        Gtk.DialogFlags.MODAL|Gtk.DialogFlags.DESTROY_WITH_PARENT,
+                        Gtk.MessageType.ERROR, Gtk.ButtonsType.CLOSE)
                 errdlg.set_markup("Error!\n<span font_family=\"monospace\">%s</span>" % errmsg)
                 errdlg.run()
                 errdlg.destroy()
@@ -412,7 +413,7 @@ class SheriffCommandTreeView(gtk.TreeView):
             return
         self._do_edit_command_dialog([cmd])
 
-    def _status_cell_data_func (self, column, cell, model, model_iter):
+    def _status_cell_data_func (self, column, cell, model, model_iter, *data):
         color_map = {
                 sheriff.TRYING_TO_START : "Orange",
                 sheriff.RESTARTING : "Orange",
@@ -432,7 +433,7 @@ class SheriffCommandTreeView(gtk.TreeView):
             if not children:
                 cell.set_property ("cell-background-set", False)
             else:
-                statuses = [ cmd.status () for cmd in children ]
+                statuses = [ cmd.status() for cmd in children ]
 
                 if all ([s == statuses[0] for s in statuses]):
                     # if all the commands in a group have the same status, then

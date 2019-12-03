@@ -351,16 +351,16 @@ static int key_press     (BotViewer *viewer, BotEventHandler *ehandler, const Gd
 
     int result = TRUE;
     switch (event->keyval) {
-        case GDK_Page_Up:
+        case GDK_KEY_Page_Up:
             zoom_ratio (dvh, 0.9);
             break;
-        case GDK_Page_Down:
+        case GDK_KEY_Page_Down:
             zoom_ratio (dvh, 1.1);
             break;
-        case GDK_leftarrow:
-        case GDK_rightarrow:
-        case GDK_uparrow:
-        case GDK_downarrow:
+        case GDK_KEY_leftarrow:
+        case GDK_KEY_rightarrow:
+        case GDK_KEY_uparrow:
+        case GDK_KEY_downarrow:
         default:
             result = FALSE;
             break;

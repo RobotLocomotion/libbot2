@@ -242,7 +242,7 @@ if __name__ == "__main__":
             v = math.sin(x / 5.) + math.cos(y / 5.)
             a.append(int(v * 50 + 127))
     img_data = a.tostring()
-    print len(img_data)
+    print(len(img_data))
     tex_id = g.texture2d(img_data, width, height, LCMGL_LUMINANCE, LCMGL_COMPRESS_NONE)
     g.glColor3f(0, 0, 1)
     g.textureDrawQuad(tex_id, 

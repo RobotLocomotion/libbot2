@@ -34,17 +34,17 @@ setup_view_menu(BotViewer *viewer)
 
     // bookmarks
 
-    gtk_menu_append(GTK_MENU(view_menu), gtk_separator_menu_item_new());
+    gtk_menu_shell_append(GTK_MENU_SHELL(view_menu), gtk_separator_menu_item_new());
 
     // predefined viewpoints
     GtkWidget *setview_y_up_item = gtk_menu_item_new_with_mnemonic("Y axis up");
-    gtk_menu_append(GTK_MENU(view_menu), setview_y_up_item);
+    gtk_menu_shell_append(GTK_MENU_SHELL(view_menu), setview_y_up_item);
     g_signal_connect(G_OBJECT(setview_y_up_item), "activate", 
             G_CALLBACK(on_setview_y_up_item), viewer);
 
     // predefined viewpoints
     GtkWidget *setview_x_up_item = gtk_menu_item_new_with_mnemonic("X axis up");
-    gtk_menu_append(GTK_MENU(view_menu), setview_x_up_item);
+    gtk_menu_shell_append(GTK_MENU_SHELL(view_menu), setview_x_up_item);
     g_signal_connect(G_OBJECT(setview_x_up_item), "activate", 
             G_CALLBACK(on_setview_x_up_item), viewer);
 

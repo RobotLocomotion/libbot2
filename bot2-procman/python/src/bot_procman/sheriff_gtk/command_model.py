@@ -1,5 +1,6 @@
-import gobject
-import gtk
+
+from gi.repository import GObject
+from gi.repository import Gtk
 
 import bot_procman.sheriff as sheriff
 
@@ -14,25 +15,25 @@ COL_CMDS_TV_MEM_VSIZE, \
 COL_CMDS_TV_AUTO_RESPAWN, \
 NUM_CMDS_ROWS = range(10)
 
-class SheriffCommandModel(gtk.TreeStore):
+class SheriffCommandModel(Gtk.TreeStore):
     def __init__(self, _sheriff):
         super(SheriffCommandModel, self).__init__( \
-                gobject.TYPE_PYOBJECT,
-                gobject.TYPE_STRING, # command executable
-                gobject.TYPE_STRING, # group name
-                gobject.TYPE_STRING, # display name
-                gobject.TYPE_STRING, # host name
-                gobject.TYPE_STRING, # status actual
-                gobject.TYPE_STRING, # CPU usage
-                gobject.TYPE_INT,    # memory vsize
-                gobject.TYPE_BOOLEAN,# auto-respawn
+                GObject.TYPE_PYOBJECT,
+                GObject.TYPE_STRING, # command executable
+                GObject.TYPE_STRING, # group name
+                GObject.TYPE_STRING, # display name
+                GObject.TYPE_STRING, # host name
+                GObject.TYPE_STRING, # status actual
+                GObject.TYPE_STRING, # CPU usage
+                GObject.TYPE_INT,    # memory vsize
+                GObject.TYPE_BOOLEAN,# auto-respawn
                 )
 
         self.sheriff = _sheriff
         self.group_row_references = {}
         self.populate_exec_with_group_name = False
 
-        self.set_sort_column_id(COL_CMDS_TV_COMMAND_ID, gtk.SORT_ASCENDING)
+        self.set_sort_column_id(COL_CMDS_TV_COMMAND_ID, Gtk.SortType.ASCENDING)
 
     def _find_or_make_group_row_reference(self, group_name):
         if not group_name:
@@ -64,12 +65,12 @@ class SheriffCommandModel(gtk.TreeStore):
                       False,                    # COL_CMDS_TV_AUTO_RESPAWN
                       )
             ts_iter = self.append(parent, new_row)
-            trr = gtk.TreeRowReference (self, self.get_path (ts_iter))
+            trr = Gtk.TreeRowReference (self, self.get_path (ts_iter))
             self.group_row_references[group_name] = trr
             return trr
 
     def get_known_group_names (self):
-        return self.group_row_references.keys()
+        return list(self.group_row_references.keys())
 
     def set_populate_exec_with_group_name(self, val):
         self.populate_exec_with_group_name = val
@@ -106,7 +107,7 @@ class SheriffCommandModel(gtk.TreeStore):
 
         # get a row reference to the model since
         # adding a group may invalidate the iterators
-        model_rr = gtk.TreeRowReference(self, path)
+        model_rr = Gtk.TreeRowReference(self, path)
 
         # check that the command is in the correct group in the
         # treemodel
@@ -178,12 +179,12 @@ class SheriffCommandModel(gtk.TreeStore):
         cmd = self.iter_to_command(model_iter)
         if cmd:
             if cmd in cmds_to_add:
-                cmds_rows_to_update.append(gtk.TreeRowReference(model, path))
+                cmds_rows_to_update.append(Gtk.TreeRowReference(model, path))
                 cmds_to_add.remove(cmd)
             else:
-                cmd_rows_to_remove.append(gtk.TreeRowReference(model, path))
+                cmd_rows_to_remove.append(Gtk.TreeRowReference(model, path))
         else:
-            group_rows_to_update.append(gtk.TreeRowReference(model, path))
+            group_rows_to_update.append(Gtk.TreeRowReference(model, path))
 
     def repopulate(self):
         cmds_to_add = set()
@@ -233,7 +234,7 @@ class SheriffCommandModel(gtk.TreeStore):
         def _check_for_lonely_groups(model, path, model_iter, user_data):
             is_group = self._is_group_row(model_iter)
             if is_group and not model.iter_has_child(model_iter):
-                groups_to_remove.append(gtk.TreeRowReference(model, path))
+                groups_to_remove.append(Gtk.TreeRowReference(model, path))
         self.foreach(_check_for_lonely_groups, None)
         for trr in groups_to_remove:
             self._delete_group_row_reference(trr)

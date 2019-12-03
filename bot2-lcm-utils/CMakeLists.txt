@@ -24,8 +24,8 @@ include(cmake/pods.cmake)
 
 list(INSERT CMAKE_MODULE_PATH 0 "${PROJECT_SOURCE_DIR}/cmake/modules")
 
-find_package(lcm REQUIRED)
-find_package(GLib2 REQUIRED)
+find_package(lcm 1.4 CONFIG REQUIRED)
+find_package(GLib2 MODULE REQUIRED)
 
 add_subdirectory(src/logfilter)
 add_subdirectory(src/logsplice)

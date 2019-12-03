@@ -276,7 +276,6 @@ typedef struct _BotViewerClass BotViewerClass;
  * @parent:
  * @backgroundColor:
  * @gl_area:
- * @tips:
  * @event_handlers: Event handlers sorted by priority (decreasing).
  * @event_handlers_sorted:
  * @picking_handler: The last-known picking handler (also a member of
@@ -323,7 +322,6 @@ struct _BotViewer {
     float backgroundColor[4];
 
     BotGtkGlDrawingArea *gl_area;
-    GtkTooltips       *tips;
 
     GPtrArray         *event_handlers;
     GPtrArray         *event_handlers_sorted;

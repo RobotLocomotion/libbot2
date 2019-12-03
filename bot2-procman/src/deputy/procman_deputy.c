@@ -1168,8 +1168,6 @@ int main (int argc, char **argv)
     char *hostname_override = NULL;
     char *lcmurl = NULL;
 
-    g_thread_init(NULL);
-
     while ((c = getopt_long (argc, argv, optstring, long_opts, 0)) >= 0)
     {
         switch (c) {

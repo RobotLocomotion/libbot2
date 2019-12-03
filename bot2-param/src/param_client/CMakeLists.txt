@@ -1,7 +1,7 @@
 add_library(bot2-param-client
     param_internal.c param_util.c)
     
-find_package(bot2-core REQUIRED)
+find_package(bot2-core CONFIG REQUIRED)
 target_link_libraries(bot2-param-client PUBLIC ${LCM_NAMESPACE}lcm libbot2::bot2-core libbot2::lcmtypes_bot2-core PRIVATE GLib2::glib lcmtypes_bot2-param)
 target_include_directories(bot2-param-client PUBLIC
   $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/include>

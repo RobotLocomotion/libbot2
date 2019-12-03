@@ -54,7 +54,9 @@ find_dependency(lcm CONFIG HINTS "${${CMAKE_FIND_PACKAGE_NAME}_IMPORT_PREFIX}/li
 find_dependency(ZLIB REQUIRED)
 if(USE_BOT_VIS)
   find_dependency(bot2-vis CONFIG HINTS "${${CMAKE_FIND_PACKAGE_NAME}_IMPORT_PREFIX}/lib/cmake/bot2-vis")
-  find_dependency(GTK2)
+  # Use the package PkgConfig to detect GTK+ headers/library files
+  find_package(PkgConfig MODULE REQUIRED)
+  pkg_check_modules(GTK3 REQUIRED gtk+-3.0)
 endif()
 
 # Import libraries that were generated with custom commands.

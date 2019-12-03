@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 
 import os
 import sys
@@ -9,10 +9,12 @@ import subprocess
 import signal
 import pickle
 
-import glib
-import gobject
-import gtk
-import pango
+import gi
+gi.require_version('Gtk', '3.0')
+from gi.repository import GLib
+from gi.repository import Gtk
+from gi.repository import GObject
+from gi.repository import Pango
 
 from lcm import LCM
 
@@ -87,19 +89,19 @@ class SheriffGtk(object):
         self.sheriff.script_removed.connect(self._on_script_removed)
 
         # update very soon
-        gobject.timeout_add(100, lambda *s: self.hosts_ts.update() and False)
-        gobject.timeout_add(100, lambda *s: self._schedule_cmds_update() and False)
+        GObject.timeout_add(100, lambda *s: self.hosts_ts.update() and False)
+        GObject.timeout_add(100, lambda *s: self._schedule_cmds_update() and False)
 
         # and then periodically
-        gobject.timeout_add (1000, self._maybe_send_orders)
-        gobject.timeout_add (1000,
+        GObject.timeout_add (1000, self._maybe_send_orders)
+        GObject.timeout_add (1000,
                 lambda *s: self._schedule_cmds_update () or True)
 
         self.lc.subscribe ("PMD_ORDERS", self.on_procman_orders)
 
         # setup GUI
 
-        self.builder = gtk.Builder()
+        self.builder = Gtk.Builder()
         self.builder.add_from_file(find_bot_procman_glade())
         self.builder.connect_signals(self)
 
@@ -145,8 +147,8 @@ class SheriffGtk(object):
 
         vpane = self.builder.get_object("vpaned")
 
-        sw = gtk.ScrolledWindow()
-        sw.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
+        sw = Gtk.ScrolledWindow()
+        sw.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
         hpane = self.builder.get_object("hpaned")
         hpane.pack1(sw, resize = True)
         sw.add(self.cmds_tv)
@@ -159,7 +161,7 @@ class SheriffGtk(object):
         view_menu = self.builder.get_object("view_menu")
         for col in self.cmds_tv.get_columns():
             name = col.get_title ()
-            col_cmi = gtk.CheckMenuItem(name)
+            col_cmi = Gtk.CheckMenuItem(name)
             col_cmi.set_active(col.get_visible())
             def on_activate(cmi, col_):
                 should_be_visible = cmi.get_active()
@@ -179,12 +181,12 @@ class SheriffGtk(object):
         # setup the hosts treeview
         self.hosts_ts = ht.SheriffHostModel(self.sheriff)
         self.hosts_tv = ht.SheriffHostTreeView(self.sheriff, self.hosts_ts)
-        sw = gtk.ScrolledWindow ()
-        sw.set_policy (gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
+        sw = Gtk.ScrolledWindow ()
+        sw.set_policy (Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
         hpane.pack2 (sw, resize = False)
         sw.add (self.hosts_tv)
 
-        gobject.timeout_add (1000, lambda *s: self.hosts_ts.update() or True)
+        GObject.timeout_add (1000, lambda *s: self.hosts_ts.update() or True)
 
         # stdout textview
         self.cmd_console = cc.SheriffCommandConsole(self.sheriff, self.lc)
@@ -196,7 +198,7 @@ class SheriffGtk(object):
         self.statusbar_context_main = self.statusbar.get_context_id("main")
         self.statusbar_context_script_msg = None
 
-        config_dir = os.path.join(glib.get_user_config_dir(), "procman-sheriff")
+        config_dir = os.path.join(GLib.get_user_config_dir(), "procman-sheriff")
         if not os.path.exists(config_dir):
             os.makedirs(config_dir)
         self.config_fname = os.path.join(config_dir, "config")
@@ -208,7 +210,7 @@ class SheriffGtk(object):
         sd.do_preferences_dialog(self, self.window)
 
     def on_quit_requested(self, *args):
-        gtk.main_quit()
+        Gtk.main_quit()
 
     def on_start_cmd_mi_activate(self, *args):
         self.cmds_tv._start_selected_commands()
@@ -236,9 +238,9 @@ class SheriffGtk(object):
         if not os.path.exists(self.config_fname):
             return
         try:
-            d = pickle.load(open(self.config_fname, "r"))
-        except Exception, err:
-            print err
+            d = pickle.load(open(self.config_fname, "rb"))
+        except Exception as err:
+            print(err)
             return
 
         self.cmds_tv.load_settings(d)
@@ -246,7 +248,7 @@ class SheriffGtk(object):
         self.hosts_tv.load_settings(d)
 
     def save_settings(self):
-        config_dir = os.path.join(glib.get_user_config_dir(), "procman-sheriff")
+        config_dir = os.path.join(GLib.get_user_config_dir(), "procman-sheriff")
         if not os.path.exists(config_dir):
             os.makedirs(config_dir)
         self.config_fname = os.path.join(config_dir, "config")
@@ -257,9 +259,9 @@ class SheriffGtk(object):
         self.hosts_tv.save_settings(d)
 
         try:
-            pickle.dump(d, open(self.config_fname, "w"))
-        except Exception, err:
-            print err
+            pickle.dump(d, open(self.config_fname, "wb"))
+        except Exception as err:
+            print(err)
 
     def _do_repopulate(self):
         self.cmds_ts.repopulate()
@@ -267,7 +269,7 @@ class SheriffGtk(object):
 
     def _schedule_cmds_update(self, *unused):
         if not self.cmds_update_scheduled:
-            gobject.timeout_add(100, self._do_repopulate)
+            GObject.timeout_add(100, self._do_repopulate)
         return True
 
     def _terminate_spawned_deputy(self):
@@ -298,8 +300,8 @@ class SheriffGtk(object):
         self.terminate_spawned_deputy_mi.set_sensitive(False)
         self.spawned_deputy = None
 
-        dialog = gtk.MessageDialog(self.window, 0, gtk.MESSAGE_ERROR,
-                gtk.BUTTONS_OK, "Spawned deputy exited prematurely: %s" % msg)
+        dialog = Gtk.MessageDialog(self.window, 0, Gtk.MessageType.ERROR,
+                Gtk.ButtonsType.OK, "Spawned deputy exited prematurely: %s" % msg)
         dialog.run()
         dialog.destroy()
 
@@ -318,9 +320,9 @@ class SheriffGtk(object):
         self.script_done_action = script_done_action
         errors = self.sheriff.execute_script(script)
         if errors:
-            msgdlg = gtk.MessageDialog (self.window,
-                    gtk.DIALOG_MODAL|gtk.DIALOG_DESTROY_WITH_PARENT,
-                    gtk.MESSAGE_ERROR, gtk.BUTTONS_CLOSE,
+            msgdlg = Gtk.MessageDialog (self.window,
+                    Gtk.DialogFlags.MODAL|Gtk.DialogFlags.DESTROY_WITH_PARENT,
+                    Gtk.MessageType.ERROR, Gtk.ButtonsType.CLOSE,
                     "Script failed to run.  Errors detected:\n" + \
                     "\n".join(errors))
             msgdlg.run ()
@@ -348,9 +350,9 @@ class SheriffGtk(object):
                 "Script %s: finished" % script.name)
         def _remove_msg_func(msg_id):
             return lambda *s: msg_id == self.statusbar_context_script_msg and self.statusbar.pop(cid)
-        gobject.timeout_add(6000, _remove_msg_func(self.statusbar_context_script_msg))
+        GObject.timeout_add(6000, _remove_msg_func(self.statusbar_context_script_msg))
         if self.script_done_action == "exit":
-            gtk.main_quit()
+            Gtk.main_quit()
         elif self.script_done_action == "observe":
             self.set_observer(True)
 
@@ -366,7 +368,10 @@ class SheriffGtk(object):
         if len(name_parts) == 1:
             insert_point = 0
             for i, smi in enumerate(menu.get_children()):
-                other_script = smi.get_data("sheriff-script")
+                if hasattr('smi', 'sheriff_script'):
+                    other_script = smi.sheriff_script
+                else:
+                    other_script = None
                 if other_script is script:
                     return smi
                 if other_script is None:
@@ -374,8 +379,8 @@ class SheriffGtk(object):
                 if other_script.name < script.name:
                     insert_point += 1
             if create:
-                mi = gtk.MenuItem(partname, use_underline=False)
-                mi.set_data("sheriff-script", script)
+                mi = Gtk.MenuItem(partname, use_underline=False)
+                mi.sheriff_script = script
                 menu.insert(mi, insert_point)
                 mi.show()
                 return mi
@@ -383,7 +388,7 @@ class SheriffGtk(object):
         else:
             insert_point = 0
             for i, smi in enumerate(menu.get_children()):
-                if not smi.get_data("sheriff-script-submenu"):
+                if not smi.sheriff_script_submenu:
                     continue
                 submenu_name = smi.get_label()
                 if submenu_name == partname:
@@ -392,10 +397,10 @@ class SheriffGtk(object):
                     insert_point = i
 
             if create:
-                smi = gtk.MenuItem(partname)
-                submenu = gtk.Menu()
+                smi = Gtk.MenuItem(partname)
+                submenu = Gtk.Menu()
                 smi.set_submenu(submenu)
-                smi.set_data("sheriff-script-submenu", True)
+                smi.sheriff_script_submenu = True
                 menu.insert(smi, insert_point)
                 smi.show()
                 return self._get_script_menuitem(submenu, script, name_parts[1:], create)
@@ -406,12 +411,12 @@ class SheriffGtk(object):
 
         if len(name_parts) == 1:
             for smi in menu.get_children():
-                if script == smi.get_data("sheriff-script"):
+                if script == smi.sheriff_script:
                     menu.remove(smi)
                     return
         else:
             for smi in menu.get_children():
-                if not smi.get_data("sheriff-script-submenu"):
+                if not smi.sheriff_script_submenu:
                     continue
                 submenu_name = smi.get_label()
                 submenu = smi.get_submenu()
@@ -435,7 +440,7 @@ class SheriffGtk(object):
 
         remove_mi = self._get_script_menuitem(self.remove_scripts_menu, script, name_parts, True)
         remove_mi.connect("activate",
-                lambda mi: self.sheriff.remove_script(mi.get_data("sheriff-script")))
+                lambda mi: self.sheriff.remove_script(mi.sheriff_script))
 
         self.edit_script_mi.set_sensitive(True)
         self.remove_script_mi.set_sensitive(True)
@@ -458,20 +463,20 @@ class SheriffGtk(object):
     # GTK signal handlers
     def on_load_cfg_mi_activate(self, *args):
         if not self.load_dlg:
-            self.load_dlg = gtk.FileChooserDialog ("Load Config", self.window,
-                    buttons = (gtk.STOCK_OPEN, gtk.RESPONSE_ACCEPT,
-                        gtk.STOCK_CANCEL, gtk.RESPONSE_REJECT))
+            self.load_dlg = Gtk.FileChooserDialog ("Load Config", self.window,
+                    buttons = (Gtk.STOCK_OPEN, Gtk.ResponseType.ACCEPT,
+                        Gtk.STOCK_CANCEL, Gtk.ResponseType.REJECT))
         if self.load_save_dir:
             self.load_dlg.set_current_folder(self.load_save_dir)
-        if gtk.RESPONSE_ACCEPT == self.load_dlg.run ():
+        if Gtk.ResponseType.ACCEPT == self.load_dlg.run ():
             self.config_filename = self.load_dlg.get_filename ()
             self.load_save_dir = os.path.dirname(self.config_filename)
             try:
                 cfg = sheriff_config.config_from_filename (self.config_filename)
             except Exception:
-                msgdlg = gtk.MessageDialog (self.window,
-                        gtk.DIALOG_MODAL|gtk.DIALOG_DESTROY_WITH_PARENT,
-                        gtk.MESSAGE_ERROR, gtk.BUTTONS_CLOSE,
+                msgdlg = Gtk.MessageDialog (self.window,
+                        Gtk.DialogFlags.MODAL|Gtk.DialogFlags.DESTROY_WITH_PARENT,
+                        Gtk.MessageType.ERROR, Gtk.ButtonsType.CLOSE,
                         traceback.format_exc ())
                 msgdlg.run ()
                 msgdlg.destroy ()
@@ -483,23 +488,23 @@ class SheriffGtk(object):
 
     def on_save_cfg_mi_activate(self, *args):
         if not self.save_dlg:
-            self.save_dlg = gtk.FileChooserDialog ("Save Config", self.window,
-                    action = gtk.FILE_CHOOSER_ACTION_SAVE,
-                    buttons = (gtk.STOCK_SAVE, gtk.RESPONSE_ACCEPT,
-                        gtk.STOCK_CANCEL, gtk.RESPONSE_REJECT))
+            self.save_dlg = Gtk.FileChooserDialog ("Save Config", self.window,
+                    action = Gtk.FileChooserAction.SAVE,
+                    buttons = (Gtk.STOCK_SAVE, Gtk.ResponseType.ACCEPT,
+                        Gtk.STOCK_CANCEL, Gtk.ResponseType.REJECT))
         if self.load_save_dir:
             self.save_dlg.set_current_folder(self.load_save_dir)
         if self.config_filename is not None:
             self.save_dlg.set_filename (self.config_filename)
-        if gtk.RESPONSE_ACCEPT == self.save_dlg.run ():
+        if Gtk.ResponseType.ACCEPT == self.save_dlg.run ():
             self.config_filename = self.save_dlg.get_filename ()
             self.load_save_dir = os.path.dirname(self.config_filename)
             try:
-                self.sheriff.save_config (file (self.config_filename, "w"))
-            except IOError, e:
-                msgdlg = gtk.MessageDialog (self.window,
-                        gtk.DIALOG_MODAL|gtk.DIALOG_DESTROY_WITH_PARENT,
-                        gtk.MESSAGE_ERROR, gtk.BUTTONS_CLOSE, str (e))
+                self.sheriff.save_config (open (self.config_filename, "w"))
+            except IOError as e:
+                msgdlg = Gtk.MessageDialog (self.window,
+                        Gtk.DialogFlags.MODAL|Gtk.DialogFlags.DESTROY_WITH_PARENT,
+                        Gtk.MessageType.ERROR, Gtk.ButtonsType.CLOSE, str (e))
                 msgdlg.run ()
                 msgdlg.destroy ()
         self.save_dlg.hide ()
@@ -570,7 +575,7 @@ class SheriffGtk(object):
 
             self.statusbar.push (self.statusbar.get_context_id ("main"),
                     "WARNING: multiple sheriffs detected!  Switching to observer mode");
-            gobject.timeout_add (6000,
+            GObject.timeout_add (6000,
                     lambda *s: self.statusbar.pop (self.statusbar.get_context_id ("main")))
 
 class SheriffHeadless(object):
@@ -636,7 +641,7 @@ class SheriffHeadless(object):
             self.sheriff.set_observer(True)
 
     def run(self):
-        self.mainloop = glib.MainLoop()
+        self.mainloop = GLib.MainLoop()
 
         # parse the config file
         if self.config is not None:
@@ -657,25 +662,25 @@ class SheriffHeadless(object):
         if self.script_name:
             self.script = self.sheriff.get_script(self.script_name)
             if not self.script:
-                print "No such script: %s" % self.script_name
+                print("No such script: %s" % self.script_name)
                 self._terminate_spawned_deputy()
                 sys.exit(1)
             errors = self.sheriff.check_script_for_errors(self.script)
             if errors:
-                print "Unable to run script.  Errors were detected:\n\n"
-                print "\n    ".join(errors)
+                print("Unable to run script.  Errors were detected:\n\n")
+                print("\n    ".join(errors))
                 self._terminate_spawned_deputy()
                 sys.exit(1)
 
             self.sheriff.script_finished.connect(self._on_script_finished)
 
             # delay script execution by 200 ms.
-            gobject.timeout_add(200, self._start_script)
+            GObject.timeout_add(200, self._start_script)
 
         signal.signal(signal.SIGINT, lambda *s: mainloop.quit())
         signal.signal(signal.SIGTERM, lambda *s: mainloop.quit())
         signal.signal(signal.SIGHUP, lambda *s: mainloop.quit())
-        gobject.timeout_add(1000, self._maybe_send_orders)
+        GObject.timeout_add(1000, self._maybe_send_orders)
 
         try:
             self.mainloop.run()
@@ -752,22 +757,22 @@ def main():
     if len(args) > 0:
         try:
             cfg = sheriff_config.config_from_filename(args[0])
-        except Exception, xcp:
-            print "Unable to load config file."
-            print xcp
+        except Exception as xcp:
+            print("Unable to load config file.")
+            print(xcp)
             sys.exit(1)
     if len(args) > 1:
         script_name = args[1]
 
     if observer:
         if cfg:
-            print "Loading a config file is not allowed when starting in observer mode."
+            print("Loading a config file is not allowed when starting in observer mode.")
             sys.exit(1)
         if not use_gui:
-            print "Refusing to start an observer without a gui -- that would be useless."
+            print("Refusing to start an observer without a gui -- that would be useless.")
             sys.exit(1)
         if spawn_deputy:
-            print "Lone ranger mode and observer mode are mutually exclusive."
+            print("Lone ranger mode and observer mode are mutually exclusive.")
             sys.exit(1)
 
     lc = LCM()
@@ -777,7 +782,7 @@ def main():
         except Exception:
             traceback.print_exc()
         return True
-    gobject.io_add_watch(lc, gobject.IO_IN, handle)
+    GObject.io_add_watch(lc, GObject.IO_IN, handle)
 
     if use_gui:
         gui = SheriffGtk(lc)
@@ -792,22 +797,22 @@ def main():
         if script_name:
             script = gui.sheriff.get_script(script_name)
             if not script:
-                print "No such script: %s" % script_name
+                print("No such script: %s" % script_name)
                 gui._terminate_spawned_deputy()
                 sys.exit(1)
             errors = gui.sheriff.check_script_for_errors(script)
             if errors:
-                print "Unable to run script.  Errors were detected:\n\n"
-                print "\n    ".join(errors)
+                print("Unable to run script.  Errors were detected:\n\n")
+                print("\n    ".join(errors))
                 gui._terminate_spawned_deputy()
                 sys.exit(1)
-            gobject.timeout_add(200, lambda *s: gui.run_script(None, script, script_done_action))
+            GObject.timeout_add(200, lambda *s: gui.run_script(None, script, script_done_action))
 
-        signal.signal(signal.SIGINT, lambda *s: gtk.main_quit())
-        signal.signal(signal.SIGTERM, lambda *s: gtk.main_quit())
-        signal.signal(signal.SIGHUP, lambda *s: gtk.main_quit())
+        signal.signal(signal.SIGINT, lambda *s: Gtk.main_quit())
+        signal.signal(signal.SIGTERM, lambda *s: Gtk.main_quit())
+        signal.signal(signal.SIGHUP, lambda *s: Gtk.main_quit())
         try:
-            gtk.main ()
+            Gtk.main ()
         except KeyboardInterrupt:
             print("Exiting")
         gui.cleanup()

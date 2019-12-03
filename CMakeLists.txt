@@ -1,6 +1,10 @@
 cmake_minimum_required(VERSION 3.10)
 string(TIMESTAMP timestamp "%Y%m%d" UTC)
-project(libbot2 VERSION 0.0.1.${timestamp})
+project(libbot2
+  VERSION 0.0.1.${timestamp}
+  DESCRIPTION "Libraries, tools, and algorithms designed to facilitate robotics research"
+  LANGUAGES C CXX
+)
 
 if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
   set(CMAKE_INSTALL_PREFIX "${PROJECT_BINARY_DIR}/install" CACHE STRING
@@ -40,15 +44,15 @@ option(BUILD_SHARED_LIBS "Build shared libraries" ON)
 
 list(INSERT CMAKE_MODULE_PATH 0 "${PROJECT_SOURCE_DIR}/cmake/modules")
 
-find_package(lcm REQUIRED)
-find_package(GLib2 REQUIRED)
-find_package(PkgConfig REQUIRED)
-find_package(OpenGL REQUIRED)
-find_package(PythonInterp REQUIRED)
+find_package(lcm 1.4 CONFIG REQUIRED)
+find_package(GLib2 MODULE REQUIRED)
+find_package(PkgConfig MODULE REQUIRED)
+find_package(OpenGL MODULE REQUIRED)
+find_package(PythonInterp 3.6 MODULE REQUIRED)
 
-# Look for the gdkx.h header to decide whether the local gtk2 install has
+# Look for the gdkx.h header to decide whether the local gtk3 install has
 # X11 support or not.
-find_file(GDKX_HEADER gdkx.h PATH_SUFFIXES gtk-2.0/gdk)
+find_file(GDKX_HEADER gdkx.h PATH_SUFFIXES gtk-3.0/gdk)
 
 if(GDKX_HEADER)
   message(STATUS "gdkx.h found, system appears to have GTK+ X11 support")
@@ -197,7 +201,7 @@ if(WITH_BOT_VIS)
 else()
   if(WITH_BOT_LCMGL)
     message(STATUS "Configuring without bot2-vis, modules requiring GTK+ X11 will not be built.")
-    find_package(ZLIB REQUIRED)
+    find_package(ZLIB MODULE REQUIRED)
 
     ExternalProject_Add(bot2-lcmgl
       SOURCE_DIR ${PROJECT_SOURCE_DIR}/bot2-lcmgl

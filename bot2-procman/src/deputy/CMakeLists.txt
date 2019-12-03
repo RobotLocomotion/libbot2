@@ -1,6 +1,6 @@
 list(INSERT CMAKE_MODULE_PATH 0 "${PROJECT_SOURCE_DIR}/cmake/modules")
-find_package(GLib2 REQUIRED COMPONENTS gthread)
-find_package(lcm REQUIRED)
+find_package(GLib2 MODULE REQUIRED COMPONENTS gthread)
+find_package(lcm 1.4 CONFIG REQUIRED)
 
 add_executable(bot-procman-deputy
     lcm_util.c

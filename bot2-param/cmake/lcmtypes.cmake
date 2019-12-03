@@ -299,7 +299,7 @@ function(lcmtypes_build_java)
     endif()
 
     # do we have Java?
-    find_package(Java)
+    find_package(Java MODULE)
     if(JAVA_COMPILE STREQUAL JAVA_COMPILE-NOTFOUND OR
        JAVA_ARCHIVE STREQUAL JAVA_ARCHIVE-NOTFOUND)
         message(STATUS "Not building Java LCM type bindings (Can't find Java)")
@@ -390,7 +390,7 @@ function(lcmtypes_build_python)
         return()
     endif()
 
-    find_package(PythonInterp)
+    find_package(PythonInterp 3.6 MODULE)
     if(NOT PYTHONINTERP_FOUND)
         message(STATUS "Not building Python LCM type bindings (Can't find Python)")
         return()
@@ -445,7 +445,7 @@ function(lcmtypes_install_types)
 endfunction()
 
 macro(lcmtypes_build)
-    find_package(lcm REQUIRED)
+    find_package(lcm 1.4 CONFIG REQUIRED)
     if(TARGET ${LCM_NAMESPACE}lcm-gen)
       get_target_property(LCM_GEN_EXECUTABLE ${LCM_NAMESPACE}lcm-gen IMPORTED_LOCATION)
       if(NOT LCM_GEN_EXECUTABLE)

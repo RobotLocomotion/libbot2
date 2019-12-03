@@ -37,7 +37,6 @@ int main(int argc, char *argv[])
 {
   gtk_init(&argc, &argv);
   glutInit(&argc, argv);
-  g_thread_init(NULL);
 
   //  if (argc < 2) {
   //    fprintf(stderr, "usage: %s <render_plugins>\n", g_path_get_basename(argv[0]));

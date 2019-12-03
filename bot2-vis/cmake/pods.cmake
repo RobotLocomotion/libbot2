@@ -272,7 +272,7 @@ macro(pods_use_pkg_config_packages target)
         message(WARNING "Useless invocation of pods_use_pkg_config_packages")
         return()
     endif()
-    find_package(PkgConfig REQUIRED)
+    find_package(PkgConfig MODULE REQUIRED)
     execute_process(COMMAND 
         ${PKG_CONFIG_EXECUTABLE} --cflags-only-I ${ARGN}
         OUTPUT_VARIABLE _pods_pkg_include_flags)
@@ -349,7 +349,7 @@ macro(pods_config_search_paths)
 	    set(INCLUDE_INSTALL_PATH ${CMAKE_INSTALL_PREFIX}/include)
       set(PKG_CONFIG_INSTALL_PATH ${LIBRARY_INSTALL_PATH}/pkgconfig)
 
-      find_package(PythonInterp REQUIRED)
+      find_package(PythonInterp 3.6 MODULE REQUIRED)
       execute_process(
         COMMAND "${PYTHON_EXECUTABLE}" -c "from distutils import sysconfig as sc; print(sc.get_python_lib(prefix='', plat_specific=True))"
         OUTPUT_VARIABLE PYTHON_SITE_PACKAGES_DIR

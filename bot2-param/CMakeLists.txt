@@ -35,7 +35,7 @@ include(cmake/lcmtypes.cmake)
 lcmtypes_build(EXPORT ${PROJECT_NAME})
 
 list(INSERT CMAKE_MODULE_PATH 0 "${PROJECT_SOURCE_DIR}/cmake/modules")
-find_package(GLib2 REQUIRED)
+find_package(GLib2 MODULE REQUIRED)
 
 set(EXPORT_FILE ${PROJECT_NAME}-targets.cmake)
 

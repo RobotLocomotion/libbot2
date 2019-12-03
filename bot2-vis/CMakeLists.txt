@@ -12,11 +12,15 @@ endif()
 list(INSERT CMAKE_MODULE_PATH 0 "${PROJECT_SOURCE_DIR}/cmake/modules")
 include(cmake/pods.cmake)
 
-find_package(GLib2 REQUIRED)
-find_package(GTK2 REQUIRED)
-find_package(lcm REQUIRED)
-find_package(OpenGL REQUIRED)
-find_package(GLUT REQUIRED)
+find_package(GLib2 MODULE REQUIRED)
+
+# Use the package PkgConfig to detect GTK+ headers/library files
+find_package(PkgConfig MODULE REQUIRED)
+pkg_check_modules(GTK3 REQUIRED gtk+-3.0)
+
+find_package(lcm 1.4 CONFIG REQUIRED)
+find_package(OpenGL MODULE REQUIRED)
+find_package(GLUT MODULE REQUIRED)
 
 add_subdirectory(src/bot_vis)
 add_subdirectory(src/testers)

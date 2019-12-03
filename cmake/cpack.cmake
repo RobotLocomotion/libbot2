@@ -1,4 +1,3 @@
-
 # Default CPack generators
 set(CPACK_GENERATOR TGZ STGZ)
 
@@ -40,41 +39,30 @@ elseif(WIN32)
 endif()
 
 include(InstallRequiredSystemLibraries)
+
 # Package release version
 set(PACKAGE_RELEASE_VERSION 1)
 set(CPACK_INSTALL_CMAKE_PROJECTS "${CPACK_INSTALL_CMAKE_PROJECTS};.;libbot2;ALL;/")
-
 
 set(CPACK_PACKAGE_DIRECTORY ${CMAKE_BINARY_DIR}/packages)
 # Caveat: CMAKE_INSTALL_PREFIX and CPACK_PACKAGING_INSTALL_PREFIX have to match because python
 # scripts generated at compile-time hardcode paths.
 set(CPACK_PACKAGING_INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}")
-set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Set of libraries, tools, and algorithms that are designed to facilitate robotics research")
 set(CPACK_PACKAGE_VENDOR "Kitware, Inc.")
 set(CPACK_PACKAGE_DESCRIPTION_FILE "${CMAKE_CURRENT_SOURCE_DIR}/README")
 set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE")
-set(CPACK_PACKAGE_VERSION_MAJOR ${PROJECT_VERSION_MAJOR})
-set(CPACK_PACKAGE_VERSION_MINOR ${PROJECT_VERSION_MINOR})
-set(CPACK_PACKAGE_VERSION_PATCH ${PROJECT_VERSION_PATCH})
-set(CPACK_PACKAGE_VERSION ${PROJECT_VERSION})
+set(CPACK_PACKAGE_CHECKSUM SHA256)
+set(CPACK_PACKAGE_HOMEPAGE_URL "https://github.com/RobotLocomotion/libbot2")
 set(CPACK_PACKAGE_NAME "${PROJECT_NAME}")
-set(CPACK_PACKAGE_FILE_NAME ${CPACK_PACKAGE_NAME}_${CPACK_PACKAGE_VERSION}-${PACKAGE_RELEASE_VERSION}_${OS_TYPE_ARCH_SUFFIX})
-set(CPACK_STRIP_FILES TRUE)
-set(CPACK_SOURCE_STRIP_FILES FALSE)
+set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}_${CPACK_PACKAGE_VERSION}-${PACKAGE_RELEASE_VERSION}_${OS_TYPE_ARCH_SUFFIX}")
+set(CPACK_STRIP_FILES ON)
+set(CPACK_SOURCE_STRIP_FILES OFF)
 
-if(NOT DEFINED CPACK_LIBPNG_VERSION)
-  set(CPACK_LIBPNG_VERSION 12-0)
-endif()
-if(PACKAGE_OPENGL)
-  set(CPACK_OPENGL libopengl0, )
-endif()
 # Debian specific
-set(CPACK_DEBIAN_PACKAGE_NAME ${CMAKE_PROJECT_NAME})
-set(CPACK_PACKAGE_VERSION ${PROJECT_VERSION})
 set(CPACK_DEBIAN_PACKAGE_ARCHITECTURE ${MACHINE_ARCH})
 set(CPACK_DEBIAN_PACKAGE_RELEASE ${PACKAGE_RELEASE_VERSION})
-set(CPACK_DEBIAN_PACKAGE_DEPENDS "lcm (>=1.4.0), default-jre | java8-runtime, freeglut3, ${CPACK_OPENGL} libc6, libgcc1, libglib2.0-0, libglu1-mesa, libgtk2.0-0, libice6, libjpeg8, libpng${CPACK_LIBPNG_VERSION}, libsm6, libstdc++6, libx11-6, libxau6, libxcb1, libxdmcp6, libxext6, libxmu6, libxt6, python, python-gtk2, python-numpy, python-scipy, zlib1g")
-set(CPACK_DEBIAN_PACKAGE_HOMEPAGE "https://github.com/RobotLocomotion/libbot2")
-set(CPACK_DEBIAN_PACKAGE_MAINTAINER "Francois Budin <francois.budin@kitware.com>")
+set(CPACK_DEBIAN_PACKAGE_DEPENDS "lcm (>=1.4.0), default-jre | java8-runtime, freeglut3, libc6, libgcc1, libglib2.0-0, libglu1-mesa, libgtk-3-0, libice6, libjpeg8, libopengl0, libpng16-16, libsm6, libstdc++6, libx11-6, libxau6, libxcb1, libxdmcp6, libxext6, libxmu6, libxt6, python3, python3-gi, python3-numpy, python3-scipy, zlib1g")
+set(CPACK_DEBIAN_PACKAGE_HOMEPAGE "${CPACK_PACKAGE_HOMEPAGE_URL}")
+set(CPACK_DEBIAN_PACKAGE_MAINTAINER "${CPACK_PACKAGE_VENDOR} <debian@kitware.com>")
 
 include(CPack)

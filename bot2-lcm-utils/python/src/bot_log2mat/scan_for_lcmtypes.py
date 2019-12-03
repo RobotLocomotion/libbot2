@@ -37,7 +37,7 @@ def find_lcmtypes():
                 # word "_get_packed_fingerprint"
                 full_fname = os.path.join(root, fname)
 		try: 
-               	    contents = open(full_fname, "r").read()
+                contents = open(full_fname, "rb").read()
 		except IOError:
                     continue
                 if not regex.search(contents):
@@ -96,7 +96,7 @@ def make_lcmtype_dictionary():
             result[fingerprint] = klass
             #print "importing %s" % lcmtype_name
         except:
-            print "Error importing %s" % lcmtype_name
+            print("Error importing %s" % lcmtype_name)
     return result
  
 if __name__ == "__main__":
@@ -106,4 +106,4 @@ if __name__ == "__main__":
     num_types = len(lcmtypes)
     print("Found %d type%s" % (num_types, num_types==1 and "" or "s"))
     for fingerprint, klass in lcmtypes.items():
-        print binascii.hexlify(fingerprint), klass.__module__
+        print(binascii.hexlify(fingerprint), klass.__module__)

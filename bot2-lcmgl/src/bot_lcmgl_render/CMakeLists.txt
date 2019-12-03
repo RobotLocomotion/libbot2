@@ -3,10 +3,10 @@ set(h_files lcmgl_decode.h)
 set(REQUIRED_LIBS)
 
 list(INSERT CMAKE_MODULE_PATH 0 "${PROJECT_SOURCE_DIR}/cmake/modules")
-find_package(OpenGL REQUIRED)
+find_package(OpenGL MODULE REQUIRED)
 
 if(USE_BOT_VIS)
-  find_package(bot2-vis REQUIRED)
+  find_package(bot2-vis CONFIG REQUIRED)
   list(APPEND c_files lcmgl_bot_renderer.c)
   list(APPEND h_files lcmgl_bot_renderer.h)
   list(APPEND REQUIRED_LIBS bot2-vis gl)

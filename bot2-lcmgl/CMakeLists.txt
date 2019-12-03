@@ -33,9 +33,9 @@ include(cmake/pods.cmake)
 include(cmake/lcmtypes.cmake)
 lcmtypes_build(JAVA_DEST_DIR ${PROJECT_SOURCE_DIR}/java/src
     EXPORT ${PROJECT_NAME})
-find_package(bot2-core REQUIRED)
-find_package(lcm REQUIRED)
-find_package(ZLIB REQUIRED)
+find_package(bot2-core CONFIG REQUIRED)
+find_package(lcm 1.4 CONFIG REQUIRED)
+find_package(ZLIB MODULE REQUIRED)
 
 option(USE_BOT_VIS "Build bot2-lcmgl with libbot2 dependency." ON)
 

@@ -162,7 +162,7 @@ class CommandNode(object):
             lines.append (s + "cmd \"%s\" {" % escape_str(nickname))
         else:
             lines.append (s + "cmd {")
-        pairs = self.attributes.items()
+        pairs = list(self.attributes.items())
         pairs.sort()
         for key, val in pairs:
             if not val:
@@ -529,14 +529,14 @@ class Parser:
         return self._node
 
 def config_from_filename (fname):
-    return Parser ().parse (file (fname))
+    return Parser ().parse (open (fname))
 
 if __name__ == "__main__":
     import sys
     try:
         fname = sys.argv[1]
     except IndexError:
-        print "usage: sheriff_config.py <fname>"
+        print("usage: sheriff_config.py <fname>")
         sys.exit (1)
 
-    print config_from_filename (fname)
+    print(config_from_filename (fname))

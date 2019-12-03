@@ -5,6 +5,7 @@
 #include <fcntl.h>
 #include <X11/Xlib.h>
 #include <gdk/gdkx.h>
+#include <gtk/gtk.h>
 
 #ifdef __APPLE__
 #include <OpenGL/gl.h>
@@ -94,7 +95,8 @@ bot_gtk_gl_drawing_area_init (BotGtkGlDrawingArea * self)
     priv->swap_requested = 0;
 #endif
 
-    XVisualInfo * vinfo = glXChooseVisual (GDK_DISPLAY (),
+    GdkDisplay *gdk_display = gdk_display_get_default ();
+    XVisualInfo * vinfo = glXChooseVisual (gdk_x11_display_get_xdisplay (gdk_display),
             GDK_SCREEN_XNUMBER (gdk_screen_get_default ()),
             attr_list);
     if (!vinfo) {
@@ -104,14 +106,14 @@ bot_gtk_gl_drawing_area_init (BotGtkGlDrawingArea * self)
     VisualID desired_id = vinfo->visualid;
     XFree (vinfo);
 
-    GList * visuals = gdk_list_visuals ();
+    GList * visuals = gdk_screen_list_visuals (gdk_screen_get_default ());
     GList * vis;
     for (vis = visuals; vis; vis = vis->next) {
         Visual * xv = GDK_VISUAL_XVISUAL (vis->data);
         if (XVisualIDFromVisual (xv) == desired_id) {
-            GdkColormap * colormap = gdk_colormap_new (vis->data, FALSE);
-            gtk_widget_set_colormap (GTK_WIDGET (self), colormap);
-            g_object_unref (G_OBJECT (colormap));
+            GdkVisual *visual = gdk_screen_get_system_visual (vis->data);
+            gtk_widget_set_visual (GTK_WIDGET (self), visual);
+            g_object_unref (G_OBJECT (visual));
             break;
         }
     }
@@ -129,8 +131,8 @@ bot_gtk_gl_drawing_area_new (gboolean vblank_sync)
     return GTK_WIDGET (object);
 }
 
-void 
-bot_gtk_gl_drawing_area_set_vblank_sync (BotGtkGlDrawingArea *self, 
+void
+bot_gtk_gl_drawing_area_set_vblank_sync (BotGtkGlDrawingArea *self,
         gboolean vblank_sync)
 {
     self->vblank_sync = vblank_sync;
@@ -141,10 +143,10 @@ bot_gtk_gl_drawing_area_size_allocate (GtkWidget * widget,
         GtkAllocation * allocation)
 {
     BotGtkGlDrawingArea * self = BOT_GTK_GL_DRAWING_AREA (widget);
-
     /* chain up */
     GTK_WIDGET_CLASS (bot_gtk_gl_drawing_area_parent_class)->size_allocate (widget,
             allocation);
+
 
     /* Resize the OpenGL area to match the allocation size. */
     if (bot_gtk_gl_drawing_area_set_context (self) == 0)
@@ -210,8 +212,9 @@ swap_func (GIOChannel * source, GIOCondition cond, gpointer data)
     BotGtkGlDrawingAreaPrivate * priv = BOT_GTK_GL_DRAWING_AREA_GET_PRIVATE (self);
 
     if (priv->swap_requested) {
-        if (bot_gtk_gl_drawing_area_set_context (self) == 0)
-            glXSwapBuffers (priv->dpy, GDK_WINDOW_XID (widget->window));
+        if (bot_gtk_gl_drawing_area_set_context (self) == 0) {
+            glXSwapBuffers (priv->dpy, GDK_WINDOW_XID (gtk_widget_get_window (widget)));
+        }
         priv->swap_requested = 0;
     }
 
@@ -256,22 +259,21 @@ bot_gtk_gl_drawing_area_realize (GtkWidget * widget)
 
     /* chain up */
     GTK_WIDGET_CLASS (bot_gtk_gl_drawing_area_parent_class)->realize (widget);
-
-    priv->dpy = GDK_WINDOW_XDISPLAY(widget->window);
+    priv->dpy = GDK_WINDOW_XDISPLAY(gtk_widget_get_window (widget));
 
 #if 0
     priv->visual = glXChooseVisual (priv->dpy,
-            GDK_SCREEN_XNUMBER (gdk_drawable_get_screen (GDK_DRAWABLE (widget->window))),
+            GDK_SCREEN_XNUMBER (gdk_drawable_get_screen (GDK_DRAWABLE (gtk_widget_get_window (widget)))),
             //DefaultScreen (priv->dpy),
             attr_list);
 #endif
-    GdkDrawable * draw = GDK_DRAWABLE (widget->window);
-    int screen = GDK_SCREEN_XNUMBER (gdk_drawable_get_screen (draw));
+    GdkWindow * window = gtk_widget_get_window (widget);
+    GdkScreen * screen = gdk_window_get_screen (window);
+    int screen_num = GDK_SCREEN_XNUMBER (screen);
     XVisualInfo vinfo_template = {
         .visualid = XVisualIDFromVisual (gdk_x11_visual_get_xvisual (
-                    gdk_drawable_get_visual (draw))),
-        .screen = screen,
-        .depth = gdk_drawable_get_depth (draw),
+                    gdk_window_get_visual (window))),
+        .screen = screen_num
     };
     int nitems;
     fprintf (stderr, "Using X Visual 0x%x\n",
@@ -295,7 +297,7 @@ bot_gtk_gl_drawing_area_realize (GtkWidget * widget)
         return;
     }
 
-    if (!glXMakeCurrent (priv->dpy, GDK_WINDOW_XID (widget->window),
+    if (!glXMakeCurrent (priv->dpy, GDK_WINDOW_XID (gtk_widget_get_window (widget)),
                 priv->context)) {
         g_warning ("Could not make GLX context current\n");
         return;
@@ -306,7 +308,7 @@ bot_gtk_gl_drawing_area_realize (GtkWidget * widget)
         return;
 
     /* Check for the presence of the video_sync extension */
-    if (!is_glx_extension_present (priv->dpy, screen, "GLX_SGI_video_sync")) {
+    if (!is_glx_extension_present (priv->dpy, screen_num, "GLX_SGI_video_sync")) {
         self->vblank_sync = 0;
         fprintf (stderr, "Video sync functions not found, disabling...\n");
         return;
@@ -403,10 +405,10 @@ bot_gtk_gl_drawing_area_swap_buffers (BotGtkGlDrawingArea * self)
     }
 #endif
     /* If we can't monitor vblank, we swap immediately. */
-    if (!GTK_WIDGET_REALIZED (widget) || !priv->dpy)
+    if (!gtk_widget_get_realized (widget) || !priv->dpy)
         return;
 
-    glXSwapBuffers (priv->dpy, GDK_WINDOW_XID (widget->window));
+    glXSwapBuffers (priv->dpy, GDK_WINDOW_XID (gtk_widget_get_window (widget)));
 }
 
 int
@@ -415,15 +417,17 @@ bot_gtk_gl_drawing_area_set_context (BotGtkGlDrawingArea * self)
     GtkWidget * widget = GTK_WIDGET (self);
     BotGtkGlDrawingAreaPrivate * priv = BOT_GTK_GL_DRAWING_AREA_GET_PRIVATE (self);
 
-    if (!GTK_WIDGET_REALIZED (widget) || !priv->context)
+    if (!gtk_widget_get_realized (widget) || !priv->context)
         return -1;
 
-    if (!glXMakeCurrent (priv->dpy, GDK_WINDOW_XID (widget->window),
+    if (!glXMakeCurrent (priv->dpy, GDK_WINDOW_XID (gtk_widget_get_window (widget)),
                 priv->context)) {
         g_warning ("Could not make GLX context current\n");
         return -1;
     }
-    glViewport(0, 0, widget->allocation.width, widget->allocation.height);
+    GtkAllocation alloc;
+    gtk_widget_get_allocation(widget, &alloc);
+    glViewport(0, 0, alloc.width, alloc.height);
     return 0;
 }
 
@@ -431,7 +435,8 @@ void
 bot_gtk_gl_drawing_area_invalidate (BotGtkGlDrawingArea * self)
 {
     GtkWidget * widget = GTK_WIDGET (self);
-    gtk_widget_queue_draw_area (widget, 0, 0,
-            widget->allocation.width, widget->allocation.height);
+    GtkAllocation alloc;
+    gtk_widget_get_allocation(widget, &alloc);
+    gtk_widget_queue_draw_area (widget, 0, 0, alloc.width, alloc.height);
 }
 

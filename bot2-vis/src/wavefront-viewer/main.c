@@ -12,7 +12,6 @@ int main(int argc, char *argv[])
 {
     gtk_init(&argc, &argv);
     glutInit(&argc, argv);
-    g_thread_init(NULL);
 
     if(argc < 2) {
         fprintf(stderr, "usage: %s <obj_filename>\n", 

@@ -1,6 +1,6 @@
-find_package(PythonInterp)
+find_package(PythonInterp 3.6 MODULE)
 
-if(PYTHONINTERP_FOUND AND PYTHON_VERSION_MAJOR EQUAL 2)
+if(PYTHONINTERP_FOUND)
   # install all python packages in the src/ directory
   pods_install_python_packages(${CMAKE_CURRENT_SOURCE_DIR}/src)
 
@@ -13,13 +13,13 @@ if(PYTHONINTERP_FOUND AND PYTHON_VERSION_MAJOR EQUAL 2)
     endforeach()
   endif()
   find_path(LCM_PYTHON_DIR NAMES "lcm/__init__.py" HINTS ${LCM_PYTHON_DIR_HINTS})
-  
+
   if(NOT LCM_PYTHON_DIR)
     message(FATAL_ERROR "Could NOT find lcm-python")
   endif()
-  
+
   configure_file(bot-log2mat.in bot-log2mat @ONLY)
-  
+
   install(PROGRAMS "${CMAKE_CURRENT_BINARY_DIR}/bot-log2mat"
     DESTINATION "${EXECUTABLE_INSTALL_PATH}")
 endif()

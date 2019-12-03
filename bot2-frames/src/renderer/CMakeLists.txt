@@ -34,13 +34,16 @@ pods_install_pkg_config_file(bot2-frames-renderers
     LIBS -lbot2-frames-renderers
     REQUIRES ${REQUIRED_PACKAGES}
     VERSION 0.0.1)
-    
-find_package(GTK2 REQUIRED)
-find_package(GLUT REQUIRED)
-find_package(bot2-lcmgl REQUIRED)
+
+# Use the package PkgConfig to detect GTK+ headers/library files
+find_package(PkgConfig MODULE REQUIRED)
+pkg_check_modules(GTK3 REQUIRED gtk+-3.0)
+
+find_package(GLUT MODULE REQUIRED)
+find_package(bot2-lcmgl CONFIG REQUIRED)
 
 #build the test-viewer
 add_executable(test-viewer test_viewer.c)
 target_link_libraries(test-viewer ${GLUT_LIBRARIES} bot2-frames-renderers libbot2::bot2-vis libbot2::bot2-lcmgl-renderer)
-target_include_directories(test-viewer PRIVATE ${GLUT_INCLUDE_DIR} ${GTK2_INCLUDE_DIRS})
+target_include_directories(test-viewer PRIVATE ${GLUT_INCLUDE_DIR} ${GTK3_INCLUDE_DIRS})
 set_property(TARGET test-viewer PROPERTY C_STANDARD 99)

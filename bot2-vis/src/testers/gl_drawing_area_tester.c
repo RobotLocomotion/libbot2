@@ -58,8 +58,10 @@ on_button_press( GtkWidget *widget, GdkEventButton *event, void *user_data )
 
     if( event->button == 1 ) {
         point2d_t *newpoint = (point2d_t*) malloc( sizeof(point2d_t) );
-        newpoint->x = event->x / widget->allocation.width;
-        newpoint->y = event->y / widget->allocation.height;
+        GtkAllocation alloc;
+        gtk_widget_get_allocation(widget, &alloc); 
+        newpoint->x = event->x / alloc.width;
+        newpoint->y = event->y / alloc.height;
         self->todraw = g_list_append( self->todraw, newpoint );
     } else if( event->button == 3 ) {
         GList *piter;
@@ -89,8 +91,10 @@ static gboolean
 on_motion_notify( GtkWidget *widget, GdkEventMotion *event, void *user_data )
 {
     state_t *self = (state_t*) user_data;
-    self->last_mouse.x = event->x / widget->allocation.width;
-    self->last_mouse.y = event->y / widget->allocation.height;
+    GtkAllocation alloc;
+    gtk_widget_get_allocation(widget, &alloc); 
+    self->last_mouse.x = event->x / alloc.width;
+    self->last_mouse.y = event->y / alloc.height;
     bot_gtk_gl_drawing_area_invalidate (self->gl_area);
     return TRUE;
 }
@@ -140,7 +144,7 @@ setup_gtk( state_t *self )
     g_signal_connect(G_OBJECT(self->gl_area), "motion-notify-event",
             G_CALLBACK(on_motion_notify), self);
 
-    GTK_WIDGET_SET_FLAGS (GTK_WIDGET (self->gl_area), GTK_CAN_FOCUS);
+    gtk_widget_set_can_focus(GTK_WIDGET (self->gl_area), TRUE);
     g_signal_connect(G_OBJECT(self->gl_area), "key-press-event",
             G_CALLBACK(on_key_press), self);
 

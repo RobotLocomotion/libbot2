@@ -1,6 +1,5 @@
-find_package(PythonInterp)
+find_package(PythonInterp 3.6 MODULE)
 
-if(PYTHONINTERP_FOUND AND PYTHON_VERSION_MAJOR EQUAL 2)
-  # install all python packages in the src/ directory
+if(PYTHONINTERP_FOUND)
   pods_install_python_packages(${CMAKE_CURRENT_SOURCE_DIR}/src)
 endif()

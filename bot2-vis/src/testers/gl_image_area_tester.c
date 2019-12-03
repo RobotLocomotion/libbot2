@@ -10,13 +10,13 @@
 #include <bot_vis/bot_vis.h>
 
 typedef struct _app_params_t
-{ 
+{
     int foo;
     char *bar;
     char *filename;
 } app_params_t;
 
-typedef struct _app_t 
+typedef struct _app_t
 {
     int foo;
 
@@ -69,7 +69,7 @@ app_create (const app_params_t *params)
 
     bot_gtk_gl_image_area_set_image_format (self->gl_area,
             self->img_width, self->img_height, GL_RGB);
-    bot_gtk_gl_image_area_upload_image (self->gl_area, self->img, 
+    bot_gtk_gl_image_area_upload_image (self->gl_area, self->img,
             self->img_stride);
 
     return self;
@@ -95,24 +95,24 @@ setup_gui (app_t *self)
     g_signal_connect (G_OBJECT (main_window), "destroy", gtk_main_quit,
             NULL);
 
-    GtkWidget *hbox = gtk_hbox_new (FALSE, FALSE);
+    GtkWidget *hbox = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 0);
     gtk_container_add (GTK_CONTAINER (main_window), hbox);
 
     self->gl_area = BOT_GTK_GL_IMAGE_AREA (bot_gtk_gl_image_area_new ());
-    g_signal_connect (G_OBJECT (self->gl_area), "expose-event", 
+    g_signal_connect (G_OBJECT (self->gl_area), "expose-event",
             G_CALLBACK (on_gl_area_expose), self);
-    gtk_widget_set_size_request (GTK_WIDGET (self->gl_area), 
+    gtk_widget_set_size_request (GTK_WIDGET (self->gl_area),
             self->img_width, self->img_height);
 
     gtk_box_pack_start (GTK_BOX (hbox), GTK_WIDGET (self->gl_area), TRUE, TRUE,
             0);
 
     self->param_widget = BOT_GTK_PARAM_WIDGET (bot_gtk_param_widget_new ());
-    gtk_box_pack_start (GTK_BOX (hbox), GTK_WIDGET (self->param_widget), 
+    gtk_box_pack_start (GTK_BOX (hbox), GTK_WIDGET (self->param_widget),
             FALSE, TRUE, 0);
-    bot_gtk_param_widget_add_booleans (self->param_widget, 0, 
+    bot_gtk_param_widget_add_booleans (self->param_widget, 0,
             "Draw X", 1, NULL);
-    g_signal_connect (G_OBJECT (self->param_widget), "changed", 
+    g_signal_connect (G_OBJECT (self->param_widget), "changed",
                 G_CALLBACK (on_param_changed), self);
 
     gtk_widget_show_all (main_window);
@@ -146,7 +146,7 @@ skip_whitespace_and_comments (FILE *fp)
 }
 
 static int
-read_header (FILE *fp, const char *magic, int *width, int *height, 
+read_header (FILE *fp, const char *magic, int *width, int *height,
         int *maxval)
 {
     char m[3] = { 0 };
@@ -164,15 +164,15 @@ read_header (FILE *fp, const char *magic, int *width, int *height,
     return 0;
 }
 
-static int ppm_read (FILE *fp, uint8_t **pixels, 
-        int *width, int *height, 
+static int ppm_read (FILE *fp, uint8_t **pixels,
+        int *width, int *height,
         int *rowstride)
 {
     int maxval;
     int i;
     int nread;
     int w, h, rs;
-    
+
     if (0 != read_header (fp, "P6", &w, &h, &maxval)) {
         fprintf(stderr, "that doesn't look like a PPM file!\n");
         return -1;
@@ -198,7 +198,7 @@ static int ppm_read (FILE *fp, uint8_t **pixels,
 }
 
 static int
-load_ppm (app_t *self, const char *filename) 
+load_ppm (app_t *self, const char *filename)
 {
     FILE *fp = fopen (filename, "rb");
     if (!fp) { perror ("fopen"); return -1; }
@@ -224,11 +224,11 @@ int main (int argc, char **argv)
         .filename = NULL
     };
 
-    GOptionEntry options[] = 
+    GOptionEntry options[] =
     {
-        { "foo", 'f', 0, G_OPTION_ARG_INT, &params.foo, 
+        { "foo", 'f', 0, G_OPTION_ARG_INT, &params.foo,
             "Example int parameter", "F" },
-        { "bar", 'b', 0, G_OPTION_ARG_STRING, &params.filename, 
+        { "bar", 'b', 0, G_OPTION_ARG_STRING, &params.filename,
             "Example filename parameter", "B" },
         { NULL }
     };

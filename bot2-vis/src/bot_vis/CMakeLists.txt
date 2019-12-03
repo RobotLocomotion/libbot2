@@ -4,11 +4,11 @@ file(GLOB h_files *.h)
 # Keep the GLM library out of the public API
 list(REMOVE_ITEM h_files glm.h)
 
-find_package(bot2-core REQUIRED)
-find_package(X11 REQUIRED )
-find_package(ZLIB REQUIRED)
-find_package(JPEG REQUIRED)
-find_package(PNG REQUIRED)
+find_package(bot2-core CONFIG REQUIRED)
+find_package(X11 MODULE REQUIRED)
+find_package(ZLIB MODULE REQUIRED)
+find_package(JPEG MODULE REQUIRED)
+find_package(PNG MODULE REQUIRED)
 
 set(REQUIRED_LIBS ${JPEG_LIBRARY} -lglut -lz)
 
@@ -25,7 +25,7 @@ target_link_libraries(bot2-vis
     OpenGL::GL
     OpenGL::GLU
     ${GLUT_LIBRARIES}
-    ${GTK2_LIBRARIES}
+    ${GTK3_LIBRARIES}
     m
   PRIVATE
     pthread
@@ -38,7 +38,7 @@ target_include_directories(${PROJECT_NAME}
   PUBLIC
     $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/src>
     $<INSTALL_INTERFACE:include>
-    ${GTK2_INCLUDE_DIRS}
+    ${GTK3_INCLUDE_DIRS}
   PRIVATE
     ${X11_INCLUDE_DIR}
     ${PNG_INCLUDE_DIRS}
@@ -46,7 +46,7 @@ target_include_directories(${PROJECT_NAME}
 )
 set_property(TARGET bot2-vis PROPERTY C_STANDARD 99)
 target_compile_options(bot2-vis PRIVATE ${PNG_DEFINITIONS})
-set(REQUIRED_PACKAGES glib-2.0 gtk+-2.0 gdk-pixbuf-2.0 lcm bot2-core libpng gl glu gthread-2.0)
+set(REQUIRED_PACKAGES glib-2.0 gtk+-3.0 gdk-pixbuf-3.0 lcm bot2-core libpng gl glu gthread-2.0)
 
 # set the library API version.  Increment this every time the public API
 # changes.

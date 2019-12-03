@@ -1,17 +1,18 @@
 import time
 
-import gobject
-import gtk
-import pango
+from gi.repository import Gdk
+from gi.repository import GObject
+from gi.repository import Gtk
+from gi.repository import Pango
 
 from bot_procman.printf_t import printf_t
 
 DEFAULT_MAX_KB_PER_SECOND = 500
 
 ANSI_CODES_TO_TEXT_TAG_PROPERTIES = { \
-        "1" : ("weight", pango.WEIGHT_BOLD),
-        "2" : ("weight", pango.WEIGHT_LIGHT),
-        "4" : ("underline", pango.UNDERLINE_SINGLE),
+        "1" : ("weight", Pango.Weight.BOLD),
+        "2" : ("weight", Pango.Weight.LIGHT),
+        "4" : ("underline", Pango.Underline.SINGLE),
         "30" : ("foreground", "black"),
         "31" : ("foreground", "red"),
         "32" : ("foreground", "green"),
@@ -34,11 +35,11 @@ def now_str (): return time.strftime ("[%H:%M:%S] ")
 
 class CommandExtraData(object):
     def __init__ (self, text_tag_table):
-        self.tb = gtk.TextBuffer (text_tag_table)
+        self.tb = Gtk.TextBuffer.new(text_tag_table)
         self.printf_keep_count = [ 0, 0, 0, 0, 0, 0 ]
         self.printf_drop_count = 0
 
-class SheriffCommandConsole(gtk.ScrolledWindow):
+class SheriffCommandConsole(Gtk.ScrolledWindow):
     def __init__(self, _sheriff, lc):
         super(SheriffCommandConsole, self).__init__()
 
@@ -49,13 +50,13 @@ class SheriffCommandConsole(gtk.ScrolledWindow):
         self.sheriff = _sheriff
 
         # stdout textview
-        self.stdout_textview = gtk.TextView ()
+        self.stdout_textview = Gtk.TextView ()
         self.stdout_textview.set_property ("editable", False)
         self.sheriff_tb = self.stdout_textview.get_buffer ()
         self.add (self.stdout_textview)
 
         stdout_adj = self.get_vadjustment ()
-        stdout_adj.set_data ("scrolled-to-end", 1)
+        stdout_adj.scrolled_to_end = 1
         stdout_adj.connect ("changed", self.on_adj_changed)
         stdout_adj.connect ("value-changed", self.on_adj_value_changed)
 
@@ -65,13 +66,13 @@ class SheriffCommandConsole(gtk.ScrolledWindow):
         # set some default appearance parameters
         self.font_str = "Monospace 10"
         self.set_font(self.font_str)
-        self.base_color = gtk.gdk.Color(65535, 65535, 65535)
-        self.text_color = gtk.gdk.Color(0, 0, 0)
+        self.base_color = Gdk.Color(65535, 65535, 65535)
+        self.text_color = Gdk.Color(0, 0, 0)
         self.set_background_color(self.base_color)
         self.set_text_color(self.text_color)
 
         # stdout rate limit maintenance events
-        gobject.timeout_add (500, self._stdout_rate_limit_upkeep)
+        GObject.timeout_add (500, self._stdout_rate_limit_upkeep)
 
         self.sheriff.command_added.connect(self._on_sheriff_command_added)
         self.sheriff.command_removed.connect(self._on_sheriff_command_removed)
@@ -81,7 +82,7 @@ class SheriffCommandConsole(gtk.ScrolledWindow):
 
         lc.subscribe ("PMD_PRINTF", self.on_procman_printf)
 
-        self.text_tags = { "normal" : gtk.TextTag("normal") }
+        self.text_tags = { "normal" : Gtk.TextTag(name="normal") }
         for tt in self.text_tags.values():
             self.sheriff_tb.get_tag_table().add(tt)
 
@@ -98,19 +99,19 @@ class SheriffCommandConsole(gtk.ScrolledWindow):
 
     def set_background_color(self, color):
         self.base_color = color
-        self.stdout_textview.modify_base(gtk.STATE_NORMAL, color)
-        self.stdout_textview.modify_base(gtk.STATE_ACTIVE, color)
-        self.stdout_textview.modify_base(gtk.STATE_PRELIGHT, color)
+        self.stdout_textview.modify_base(Gtk.StateFlags.NORMAL, color)
+        self.stdout_textview.modify_base(Gtk.StateFlags.ACTIVE, color)
+        self.stdout_textview.modify_base(Gtk.StateFlags.PRELIGHT, color)
 
     def set_text_color(self, color):
         self.text_color = color
-        self.stdout_textview.modify_text(gtk.STATE_NORMAL, color)
-        self.stdout_textview.modify_text(gtk.STATE_ACTIVE, color)
-        self.stdout_textview.modify_text(gtk.STATE_PRELIGHT, color)
+        self.stdout_textview.modify_text(Gtk.StateFlags.NORMAL, color)
+        self.stdout_textview.modify_text(Gtk.StateFlags.ACTIVE, color)
+        self.stdout_textview.modify_text(Gtk.StateFlags.PRELIGHT, color)
 
     def set_font(self, font_str):
         self.font_str = font_str
-        self.stdout_textview.modify_font(pango.FontDescription(font_str))
+        self.stdout_textview.modify_font(Pango.FontDescription(font_str))
 
     def _stdout_rate_limit_upkeep (self):
         for cmd in self.sheriff.get_all_commands ():
@@ -141,7 +142,7 @@ class SheriffCommandConsole(gtk.ScrolledWindow):
             codes.sort()
             key = ";".join(codes)
         if key not in self.text_tags:
-            tag = gtk.TextTag(key)
+            tag = Gtk.TextTag(name=key)
             for code in codes:
                 if code in ANSI_CODES_TO_TEXT_TAG_PROPERTIES:
                     propname, propval = ANSI_CODES_TO_TEXT_TAG_PROPERTIES[code]
@@ -192,10 +193,10 @@ class SheriffCommandConsole(gtk.ScrolledWindow):
                 "[%s] new status: %s\n" % (cmd.command_id, new_status))
 
     def on_tb_populate_menu(self,textview, menu):
-        sep = gtk.SeparatorMenuItem()
+        sep = Gtk.SeparatorMenuItem()
         menu.append (sep)
         sep.show()
-        mi = gtk.MenuItem ("_Clear")
+        mi = Gtk.MenuItem ("_Clear")
         menu.append(mi)
         mi.connect ("activate", self._tb_clear)
         mi.show()
@@ -218,10 +219,12 @@ class SheriffCommandConsole(gtk.ScrolledWindow):
             self.set_output_rate_limit(save_map["console_rate_limit"])
 
         if "console_background_color" in save_map:
-            self.set_background_color(gtk.gdk.Color(save_map["console_background_color"]))
+            success, color = Gdk.Color.parse(save_map["console_background_color"])
+            self.set_background_color(color)
 
         if "console_text_color" in save_map:
-            self.set_text_color(gtk.gdk.Color(save_map["console_text_color"]))
+            success, color = Gdk.Color.parse(save_map["console_text_color"])
+            self.set_text_color(color)
 
         if "console_font" in save_map:
             self.set_font(save_map["console_font"])
@@ -233,11 +236,11 @@ class SheriffCommandConsole(gtk.ScrolledWindow):
         save_map["console_font"] = self.font_str
 
     def on_adj_changed (self, adj):
-        if adj.get_data ("scrolled-to-end"):
-            adj.set_value (adj.upper - adj.page_size)
+        if adj.scrolled_to_end:
+            adj.set_value (adj.get_upper() - adj.get_page_size())
 
     def on_adj_value_changed (self, adj):
-        adj.set_data ("scrolled-to-end", adj.value == adj.upper-adj.page_size)
+        adj.scrolled_to_end = adj.value() == adj.get_upper() - adj.get_page_size()
 
     def on_procman_printf (self, channel, data):
         msg = printf_t.decode (data)
