@@ -1,0 +1,45 @@
+#!/bin/bash
+
+# This file is part of libbot2.
+#
+# libbot2 is free software: you can redistribute it and/or modify it
+# under the terms of the GNU Lesser General Public License as published by the
+# Free Software Foundation, either version 3 of the License, or (at your
+# option) any later version.
+#
+# libbot2 is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+# or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public
+# License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with libbot2. If not, see <https://www.gnu.org/licenses/>.
+
+# This script will start a docker container that contains the requirements to
+# build libbot2 (except LCM which is built as part of this process). It will
+# then copy a script in the docker container that has been start, and run that
+# script which builds and packages LCM, builds and packages libbot2, and copy
+# the 2 deb archives in the current working directory before stopping and
+# removing the docker container.
+
+set -euxo pipefail
+
+readonly timestamp=$(date -u +%Y%m%d)
+
+rm -f lcm_1.4.0-gabdd8a2_amd64.deb libbot2_0.0.1.*-1_amd64.deb
+
+docker build --tag libbot2-jammy-prereqs "$(git rev-parse --show-toplevel)"/scripts/setup/linux/ubuntu/jammy/
+docker run --detach --name libbot2-jammy --tty libbot2-jammy-prereqs
+trap 'docker stop libbot2-jammy && docker rm libbot2-jammy' EXIT
+docker cp "$(git rev-parse --show-toplevel)" libbot2-jammy:/tmp/libbot2
+docker exec libbot2-jammy /tmp/libbot2/scripts/package/linux/ubuntu/common/build.sh "${timestamp}"
+docker cp libbot2-jammy:/tmp/lcm_1.4.0-gabdd8a2_amd64.deb .
+docker cp libbot2-jammy:/tmp/"libbot2_0.0.1.${timestamp}-1_amd64.deb" .
+
+# Test package
+docker run --detach --name libbot2-jammy-test --tty ubuntu:22.04
+trap 'docker stop libbot2-jammy libbot2-jammy-test && docker rm libbot2-jammy libbot2-jammy-test' EXIT
+docker cp lcm_1.4.0-gabdd8a2_amd64.deb libbot2-jammy-test:/tmp
+docker cp "libbot2_0.0.1.${timestamp}-1_amd64.deb" libbot2-jammy-test:/tmp
+docker cp "$(git rev-parse --show-toplevel)" libbot2-jammy-test:/tmp/libbot2
+docker exec libbot2-jammy-test /tmp/libbot2/scripts/package/linux/ubuntu/common/test.sh "${timestamp}"
