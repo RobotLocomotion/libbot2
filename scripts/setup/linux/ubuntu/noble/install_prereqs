@@ -28,8 +28,8 @@ apt-get -qq update || (sleep 15; apt-get -qq update)
 apt-get -o Acquire::Retries=4 -o Dpkg::Use-Pty=0 -qy --no-install-recommends install \
   lsb-release
 
-if [[ "$(lsb_release -cs)" != 'jammy' ]]; then
-  echo 'This script requires Ubuntu 22.04 (Focal)' >&2
+if [[ "$(lsb_release -cs)" != 'noble' ]]; then
+  echo 'This script requires Ubuntu 24.04 (Noble)' >&2
   exit 2
 fi
 
@@ -58,7 +58,7 @@ apt-get -o Acquire::Retries=4 -o Dpkg::Use-Pty=0 -qy --no-install-recommends ins
 wget -qO- https://apt.kitware.com/keys/kitware-archive-latest.asc \
   | gpg --dearmor > /etc/apt/trusted.gpg.d/kitware.gpg
 
-echo 'deb https://apt.kitware.com/ubuntu/ jammy main' \
+echo 'deb https://apt.kitware.com/ubuntu/ noble main' \
   > /etc/apt/sources.list.d/kitware.list
 
 apt-get -qq update || (sleep 15; apt-get -qq update)
