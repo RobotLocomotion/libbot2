@@ -26,20 +26,20 @@ set -euxo pipefail
 
 readonly timestamp=$(date -u +%Y%m%d)
 
-rm -f lcm_1.5.1-3d60029_amd64.deb libbot2_0.0.1.*-1_amd64.deb
+rm -f lcm_1.4.0-gabdd8a2_amd64.deb libbot2_0.0.1.*-1_amd64.deb
 
 docker build --tag libbot2-focal-prereqs "$(git rev-parse --show-toplevel)"/scripts/setup/linux/ubuntu/focal/
 docker run --detach --name libbot2-focal --tty libbot2-focal-prereqs
 trap 'docker stop libbot2-focal && docker rm libbot2-focal' EXIT
 docker cp "$(git rev-parse --show-toplevel)" libbot2-focal:/tmp/libbot2
 docker exec libbot2-focal /tmp/libbot2/scripts/package/linux/ubuntu/common/build.sh "${timestamp}"
-docker cp libbot2-focal:/tmp/lcm_1.5.1-3d60029_amd64.deb .
+docker cp libbot2-focal:/tmp/lcm_1.4.0-gabdd8a2_amd64.deb .
 docker cp libbot2-focal:/tmp/"libbot2_0.0.1.${timestamp}-1_amd64.deb" .
 
 # Test package
 docker run --detach --name libbot2-focal-test --tty ubuntu:20.04
 trap 'docker stop libbot2-focal libbot2-focal-test && docker rm libbot2-focal libbot2-focal-test' EXIT
-docker cp lcm_1.5.1-2_amd643d60029_amd64.deb libbot2-focal-test:/tmp
+docker cp lcm_1.4.0-2_amd64gabdd8a2_amd64.deb libbot2-focal-test:/tmp
 docker cp "libbot2_0.0.1.${timestamp}-1_amd64.deb" libbot2-focal-test:/tmp
 docker cp "$(git rev-parse --show-toplevel)" libbot2-focal-test:/tmp/libbot2
 docker exec libbot2-focal-test /tmp/libbot2/scripts/package/linux/ubuntu/common/test.sh "${timestamp}"

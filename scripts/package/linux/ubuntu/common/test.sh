@@ -31,7 +31,7 @@ pushd /tmp
 export DEBIAN_FRONTEND=noninteractive
 apt-get update -qq
 apt-get install --no-install-recommends -y devscripts gdebi
-gdebi -n lcm_1.5.1-3d60029_amd64.deb
+gdebi -n lcm_1.4.0-gabdd8a2_amd64.deb
 gdebi -n "libbot2_0.0.1.${timestamp}-1_amd64.deb"
 
 popd
@@ -78,7 +78,7 @@ for i in /opt/libbot2/"0.0.1.${timestamp}"/lib/liblcmtypes_bot2-*.a; do
 done
 
 # Test python modules
-export PYTHONPATH=${PYTHONPATH:+${PYTHONPATH}:}/opt/libbot2/"0.0.1.${timestamp}"/lib/python3/dist-packages:/opt/lcm/1.5.1/lib/python3/dist-packages
+export PYTHONPATH=${PYTHONPATH:+${PYTHONPATH}:}/opt/libbot2/"0.0.1.${timestamp}"/lib/python3/dist-packages:/opt/lcm/1.4.0/lib/python3/dist-packages
 readonly python_modules=(lcm bot_procman bot_param bot_log2mat bot_lcmgl bot_frames bot_core)
 
 for i in "${python_modules[@]}";do

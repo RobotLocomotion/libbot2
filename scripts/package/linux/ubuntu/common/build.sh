@@ -38,7 +38,7 @@ pushd /tmp
 git clone --config advice.detachedHead=false https://github.com/lcm-proj/lcm.git
 
 pushd lcm
-git checkout v1.5.1
+git checkout abdd8a292fcaf6e331f0449778e275890e12811a
 
 cat << 'EOF' > lcm-cmake.patch
 diff --git a/lcm-cmake/cpack.cmake b/lcm-cmake/cpack.cmake
@@ -81,13 +81,13 @@ cmake -DBUILD_SHARED_LIBS:BOOL=ON \
       -DCMAKE_CXX_FLAGS:STRING="$(dpkg-buildflags --get CXXFLAGS) $(dpkg-buildflags --get CPPFLAGS)" \
       -DCMAKE_C_FLAGS:STRING="$(dpkg-buildflags --get CFLAGS) $(dpkg-buildflags --get CPPFLAGS) -Wno-deprecated-declarations" \
       -DCMAKE_SHARED_LINKER_FLAGS:STRING="$(dpkg-buildflags --get LDFLAGS)" \
-      -DCPACK_DEBIAN_PACKAGE_VERSION:STRING=1.5.1 \
-      -DCPACK_DEBIAN_PACKAGE_RELEASE:STRING=3d60029 \
+      -DCPACK_DEBIAN_PACKAGE_VERSION:STRING=1.4.0 \
+      -DCPACK_DEBIAN_PACKAGE_RELEASE:STRING=gabdd8a2 \
       -DCPACK_DEBIAN_PACKAGE_MAINTAINER:STRING="Kitware <kitware@kitware.com>" \
-      -DCPACK_PACKAGING_INSTALL_PREFIX:PATH=/opt/lcm/1.5.1 \
+      -DCPACK_PACKAGING_INSTALL_PREFIX:PATH=/opt/lcm/1.4.0 \
       -DCMAKE_C_FLAGS:STRING=-Wl,-rpath,\$ORIGIN/../lib \
       -DCMAKE_CXX_FLAGS:STRING=-Wl,-rpath,\$ORIGIN/../lib \
-      -DCMAKE_INSTALL_PREFIX:PATH=/opt/lcm/1.5.1 \
+      -DCMAKE_INSTALL_PREFIX:PATH=/opt/lcm/1.4.0 \
       -DLCM_ENABLE_EXAMPLES:BOOL=OFF \
       -DLCM_ENABLE_TESTS:BOOL=OFF \
       -DPYTHON_EXECUTABLE:FILEPATH=/usr/bin/python3 \
@@ -95,7 +95,7 @@ cmake -DBUILD_SHARED_LIBS:BOOL=ON \
 make
 cpack -G DEB
 popd
-mv lcm-build/packages/lcm_1.5.1-3d60029_amd64.deb lcm_1.5.1-3d60029_amd64.deb
+mv lcm-build/packages/lcm_1.4.0-gabdd8a2_amd64.deb lcm_1.4.0-gabdd8a2_amd64.deb
 rm -rf lcm-build
 
 # Install the package instead of running `make install`. This
@@ -103,7 +103,7 @@ rm -rf lcm-build
 # is built and its package is installed. This is necessary because
 # some scripts such as `bot-spy` rely on `lcm-spy` and its path
 # is hardcoded at compile time.
-dpkg -i lcm_1.5.1-3d60029_amd64.deb
+dpkg -i lcm_1.4.0-gabdd8a2_amd64.deb
 
 # Configure, compile, and package libbot2
 mkdir libbot2-build
@@ -112,7 +112,7 @@ cmake -DPACKAGE_LIBBOT2:BOOL=ON \
       -DCMAKE_BUILD_TYPE:STRING=Release \
       -DCMAKE_CXX_FLAGS:STRING="$(dpkg-buildflags --get CXXFLAGS) $(dpkg-buildflags --get CPPFLAGS)" \
       -DCMAKE_C_FLAGS:STRING="$(dpkg-buildflags --get CFLAGS) $(dpkg-buildflags --get CPPFLAGS)" \
-      -DCMAKE_PREFIX_PATH:PATH=/opt/lcm/1.5.1 \
+      -DCMAKE_PREFIX_PATH:PATH=/opt/lcm/1.4.0 \
       -DCMAKE_SHARED_LINKER_FLAGS:STRING="$(dpkg-buildflags --get LDFLAGS)" \
       -DPYTHON_EXECUTABLE:FILEPATH=/usr/bin/python3 \
       ${repo_dir}
