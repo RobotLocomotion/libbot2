@@ -69,6 +69,21 @@ index 253ab64..52b1c7b 100644
 EOF
 git apply lcm-cmake.patch
 rm -f lcm-cmake.patch
+
+# Patch lcm to use a higher supported minimum version of CMake
+cat << 'EOF' > CMakeLists.patch
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -1,2 +1,2 @@
+-cmake_minimum_required(VERSION 3.1)
++cmake_minimum_required(VERSION 3.10)
+
+EOF
+git apply CMakeLists.patch
+rm -f CMakeLists.patch
+
+# Last patch applied, exit ``/tmp``
 popd
 
 mkdir lcm-build
