@@ -62,7 +62,7 @@ index 253ab64..52b1c7b 100644
  set(CPACK_DEBIAN_PACKAGE_HOMEPAGE "https://github.com/lcm-proj/lcm")
  set(CPACK_DEBIAN_PACKAGE_SECTION "devel")
 -set(CPACK_DEBIAN_PACKAGE_DEPENDS "libglib2.0-0, libpcre3")
-+set(CPACK_DEBIAN_PACKAGE_DEPENDS "default-jre | java8-runtime, libc6, libgcc1, libglib2.0-0, libpcre3, libstdc++6, python3")
++set(CPACK_DEBIAN_PACKAGE_DEPENDS "default-jre | java8-runtime, libc6, libgcc1, libglib2.0-0, libpcre2-8-0, libstdc++6, python3")
 
  message(STATUS "CPack: Packages will be placed under ${CPACK_PACKAGE_DIRECTORY}")
 
@@ -82,6 +82,31 @@ diff --git a/CMakeLists.txt b/CMakeLists.txt
 EOF
 git apply CMakeLists.patch
 rm -f CMakeLists.patch
+
+# Address compatibility issues with Py_TYPE()
+cat << 'EOF' > lcm-python.patch
+diff --git a/lcm-python/module.c b/lcm-python/module.c
+--- a/lcm-python/module.c
++++ b/lcm-python/module.c
+@@ -44,6 +44,11 @@
+     PyObject *m;
++
++    // Define Py_SET_TYPE if not available (for older Python compatibility)
++    #if !defined(Py_SET_TYPE)
++    #define Py_SET_TYPE(obj, type) ((Py_TYPE(obj) = (type)), (void)0)
++    #endif
+
++    Py_SET_TYPE(&pylcmeventlog_type, &PyType_Type);
++    Py_SET_TYPE(&pylcm_type, &PyType_Type);
++    Py_SET_TYPE(&pylcm_subscription_type, &PyType_Type);
+-    Py_TYPE(&pylcmeventlog_type) = &PyType_Type;
+-    Py_TYPE(&pylcm_type) = &PyType_Type;
+-    Py_TYPE(&pylcm_subscription_type) = &PyType_Type;
+
+     MOD_DEF(m, "_lcm", lcmmod_doc, lcmmod_methods);
+EOF
+git apply lcm-python.patch
+rm -f lcm-python.patch
 
 # Last patch applied, exit ``/tmp``
 popd
