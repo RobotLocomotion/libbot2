@@ -45,6 +45,7 @@ apt-get -o Acquire::Retries=4 -o Dpkg::Use-Pty=0 -qy --no-install-recommends ins
   libglib2.0-dev \
   libgtk-3-dev \
   libjpeg8-dev \
+  libpcre3-dev \
   libpng-dev \
   libxmu-dev \
   pkg-config \
