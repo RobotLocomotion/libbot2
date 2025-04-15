@@ -52,6 +52,7 @@ apt-get -o Acquire::Retries=4 -o Dpkg::Use-Pty=0 -qy --no-install-recommends ins
   python3-gi \
   python3-numpy \
   python3-scipy \
+  python3-setuptools \
   wget \
   zlib1g-dev
 
