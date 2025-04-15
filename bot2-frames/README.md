@@ -53,7 +53,7 @@ coordinate_frames {
 * bot2-core
 * bot2-param
 * C/C++ compiler that supports C++98 and C99 (Clang or GCC recommended)
-* CMake 3.10 and above (build and install) or 3.1 and above (use)
+* CMake 3.10 and above (build and install) or 3.5 and above (use)
 * GLib and GObject 2.32 and above
 * LCM 1.4 and above
 * Linux or POSIX-compliant operating system (macOS Mojave 10.14 and above or
@@ -86,7 +86,7 @@ make install
 CMakeLists.txt:
 
 ```cmake
-cmake_minimum_required(VERSION 3.1 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.5 FATAL_ERROR)
 
 # ...
 

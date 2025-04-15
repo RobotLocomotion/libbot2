@@ -20,7 +20,7 @@
 
 // Adapted from F. Devernay's extensions to Nate Robbins' GLM library
 //
-// Source obtained from GLM-0.3.1 available from
+// Source obtained from GLM-0.3.5 available from
 // http://devernay.free.fr/hacks/glm/
 //
 // Changes:
