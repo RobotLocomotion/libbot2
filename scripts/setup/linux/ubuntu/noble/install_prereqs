@@ -39,10 +39,10 @@ apt-get -o Acquire::Retries=4 -o Dpkg::Use-Pty=0 -qy --no-install-recommends ins
   default-jdk \
   doxygen \
   file \
-  freeglut3-dev \
   git \
   gnupg \
   libglib2.0-dev \
+  libglut-dev \
   libgtk-3-dev \
   libjpeg8-dev \
   libpng-dev \
