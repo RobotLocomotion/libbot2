@@ -62,7 +62,7 @@ set(CPACK_SOURCE_STRIP_FILES OFF)
 # Debian specific
 set(CPACK_DEBIAN_PACKAGE_ARCHITECTURE ${MACHINE_ARCH})
 set(CPACK_DEBIAN_PACKAGE_RELEASE ${PACKAGE_RELEASE_VERSION})
-set(CPACK_DEBIAN_PACKAGE_DEPENDS "lcm (>=1.4.0), default-jre | java8-runtime, freeglut3, libc6, libgcc1, libglib2.0-0, libglu1-mesa, libgtk-3-0, libice6, libjpeg8, libopengl0, libpng16-16, libsm6, libstdc++6, libx11-6, libxau6, libxcb1, libxdmcp6, libxext6, libxmu6, libxt6, python3, python3-gi, python3-numpy, python3-scipy, zlib1g")
+set(CPACK_DEBIAN_PACKAGE_DEPENDS "lcm (>=1.4.0), default-jre | java8-runtime, libc6, libgcc1, libglib2.0-0, libglut3.12, libglu1-mesa, libgtk-3-0, libice6, libjpeg8, libopengl0, libpng16-16, libsm6, libstdc++6, libx11-6, libxau6, libxcb1, libxdmcp6, libxext6, libxmu6, libxt6, python3, python3-gi, python3-numpy, python3-scipy, zlib1g")
 set(CPACK_DEBIAN_PACKAGE_HOMEPAGE "${CPACK_PACKAGE_HOMEPAGE_URL}")
 set(CPACK_DEBIAN_PACKAGE_MAINTAINER "${CPACK_PACKAGE_VENDOR} <debian@kitware.com>")
 

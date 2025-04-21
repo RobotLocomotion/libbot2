@@ -8,7 +8,7 @@
 
 * bot2-core
 * C compiler that supports C99 (Clang or GCC recommended)
-* CMake 3.10 and above (build and install) or 3.1 and above (use)
+* CMake 3.10 and above (build and install) or 3.5 and above (use)
 * FreeGLUT (Linux) or GLUT (macOS)
 * GDK and GTK 3.0 and above with X11 support
 * GLib and GObject 2.32 and above
@@ -40,7 +40,7 @@ make install
 CMakeLists.txt:
 
 ```cmake
-cmake_minimum_required(VERSION 3.1 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.5 FATAL_ERROR)
 
 # ...
 
