@@ -88,13 +88,8 @@ cat << 'EOF' > lcm-python.patch
 diff --git a/lcm-python/module.c b/lcm-python/module.c
 --- a/lcm-python/module.c
 +++ b/lcm-python/module.c
-@@ -44,6 +44,11 @@
+@@ -44,6 +44,6 @@
      PyObject *m;
-+
-+    // Define Py_SET_TYPE if not available (for older Python compatibility)
-+    #if !defined(Py_SET_TYPE)
-+    #define Py_SET_TYPE(obj, type) ((Py_TYPE(obj) = (type)), (void)0)
-+    #endif
 
 +    Py_SET_TYPE(&pylcmeventlog_type, &PyType_Type);
 +    Py_SET_TYPE(&pylcm_type, &PyType_Type);
