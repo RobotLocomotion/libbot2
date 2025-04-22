@@ -62,13 +62,64 @@ index 253ab64..52b1c7b 100644
  set(CPACK_DEBIAN_PACKAGE_HOMEPAGE "https://github.com/lcm-proj/lcm")
  set(CPACK_DEBIAN_PACKAGE_SECTION "devel")
 -set(CPACK_DEBIAN_PACKAGE_DEPENDS "libglib2.0-0, libpcre3")
-+set(CPACK_DEBIAN_PACKAGE_DEPENDS "default-jre | java8-runtime, libc6, libgcc1, libglib2.0-0, libpcre3, libstdc++6, python3")
++set(CPACK_DEBIAN_PACKAGE_DEPENDS "default-jre | java8-runtime, libc6, libgcc1, libglib2.0-0, libpcre2-8-0, libstdc++6, python3")
 
  message(STATUS "CPack: Packages will be placed under ${CPACK_PACKAGE_DIRECTORY}")
 
 EOF
 git apply lcm-cmake.patch
 rm -f lcm-cmake.patch
+
+# Patch lcm to use a higher supported minimum version of CMake
+cat << 'EOF' > CMakeLists.patch
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -1,2 +1,2 @@
+-cmake_minimum_required(VERSION 3.1)
++cmake_minimum_required(VERSION 3.10)
+
+EOF
+git apply CMakeLists.patch
+rm -f CMakeLists.patch
+
+# Address compatibility issues with Py_TYPE()
+# from upstream 0289aa9efdf043dd69d65b7d01273e8108dd79f7
+cat << 'EOF' > lcm-python.patch
+diff --git a/lcm-python/module.c b/lcm-python/module.c
+index d03e87c..0cac708 100644
+--- a/lcm-python/module.c
++++ b/lcm-python/module.c
+@@ -9,6 +9,11 @@
+ #define Py_TYPE(ob) (((PyObject *) (ob))->ob_type)
+ #endif
+
++// to support python 3.9.0a3 and earlier
++#if PY_VERSION_HEX < 0x030900A4
++#define Py_SET_TYPE(obj, type) ((Py_TYPE(obj) = (type)), (void)0)
++#endif
++
+ extern PyTypeObject pylcmeventlog_type;
+ extern PyTypeObject pylcm_type;
+ extern PyTypeObject pylcm_subscription_type;
+@@ -43,9 +48,9 @@ init_lcm(void)
+ {
+     PyObject *m;
+
+-    Py_TYPE(&pylcmeventlog_type) = &PyType_Type;
+-    Py_TYPE(&pylcm_type) = &PyType_Type;
+-    Py_TYPE(&pylcm_subscription_type) = &PyType_Type;
++    Py_SET_TYPE(&pylcmeventlog_type, &PyType_Type);
++    Py_SET_TYPE(&pylcm_type, &PyType_Type);
++    Py_SET_TYPE(&pylcm_subscription_type, &PyType_Type);
+
+     MOD_DEF(m, "_lcm", lcmmod_doc, lcmmod_methods);
+
+EOF
+git apply lcm-python.patch
+rm -f lcm-python.patch
+
+# Last patch applied, exit ``/tmp``
 popd
 
 mkdir lcm-build

@@ -1,7 +1,5 @@
 # RobotLocomotion Fork of libbot2
 
-![CI](https://github.com/RobotLocomotion/libbot2/workflows/CI/badge.svg)
-
 The libbot2 project provides a set of libraries, tools, and algorithms that are
 designed to facilitate robotics research. Among others, these include
 convenience functions for maintaining coordinate transformations, tools for
@@ -83,7 +81,7 @@ make install
 CMakeLists.txt:
 
 ```cmake
-cmake_minimum_required(VERSION 3.1 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.5 FATAL_ERROR)
 
 # ...
 
