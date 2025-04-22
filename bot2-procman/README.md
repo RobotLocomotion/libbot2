@@ -3,8 +3,6 @@
 *Process management tools for controlling many processes on one or many
 workstations*
 
-![CI](https://github.com/RobotLocomotion/libbot2/workflows/CI/badge.svg)
-
 Procman is a tool for managing many processes distributed over one or more
 computers. There are two ways to use procman:
 
@@ -38,7 +36,7 @@ or with `-l`, but `--lone-ranger` is cooler.
 ## Required Dependencies
 
 * C/C++ compiler that supports C++98 and C99 (Clang or GCC recommended)
-* CMake 3.10 and above (build and install) or 3.1 and above (use)
+* CMake 3.10 and above (build and install) or 3.5 and above (use)
 * GLib and GThreads 2.32 and above
 * GObject Introspection and PyGObject 3 and above
 * LCM 1.4 and above
@@ -68,7 +66,7 @@ make install
 CMakeLists.txt:
 
 ```cmake
-cmake_minimum_required(VERSION 3.1 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.5 FATAL_ERROR)
 
 # ...
 

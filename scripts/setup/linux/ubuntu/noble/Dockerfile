@@ -13,9 +13,8 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with libbot2. If not, see <https://www.gnu.org/licenses/>.
 
-FROM ubuntu:18.04
+FROM ubuntu:24.04
 COPY ./install_prereqs /tmp/install_prereqs
-ARG DEBIAN_FRONTEND=noninteractive
 RUN /tmp/install_prereqs \
   && rm -rf /var/lib/apt/lists/* \
   && rm -f /tmp/install_prereqs

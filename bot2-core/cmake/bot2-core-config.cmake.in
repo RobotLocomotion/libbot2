@@ -20,15 +20,15 @@ along with @PROJECT_NAME@. If not, see <https://www.gnu.org/licenses/>.
 
 @PACKAGE_INIT@
 
-if(CMAKE_VERSION VERSION_LESS 3.1)
+if(CMAKE_VERSION VERSION_LESS 3.5)
   message(FATAL_ERROR
-    "CMake 3.1 or higher is required to use @PROJECT_NAME@. "
+    "CMake 3.5 or higher is required to use @PROJECT_NAME@. "
     "You are running version ${CMAKE_VERSION}."
   )
 endif()
 
 cmake_policy(PUSH)
-cmake_policy(VERSION 3.1)
+cmake_policy(VERSION 3.5)
 set(CMAKE_IMPORT_FILE_VERSION 1)
 
 if(CMAKE_VERSION VERSION_LESS 3.9)

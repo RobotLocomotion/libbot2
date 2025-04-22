@@ -146,7 +146,7 @@ macro(_pkgconfig_parse_options _result _is_req _is_silent _no_cmake_path _no_cma
       set(${_no_cmake_path} 1)
       set(${_no_cmake_environment_path} 1)
     endif()
-  elseif(CMAKE_MINIMUM_REQUIRED_VERSION VERSION_LESS 3.1)
+  elseif(CMAKE_MINIMUM_REQUIRED_VERSION VERSION_LESS 3.5)
     set(${_no_cmake_path} 1)
     set(${_no_cmake_environment_path} 1)
   endif()
@@ -516,7 +516,7 @@ endmacro()
 
  When the ``QUIET`` argument is set, no status messages will be printed.
 
- By default, if :variable:`CMAKE_MINIMUM_REQUIRED_VERSION` is 3.1 or
+ By default, if :variable:`CMAKE_MINIMUM_REQUIRED_VERSION` is 3.5 or
  later, or if :variable:`PKG_CONFIG_USE_CMAKE_PREFIX_PATH` is set, the
  :variable:`CMAKE_PREFIX_PATH`, :variable:`CMAKE_FRAMEWORK_PATH`, and
  :variable:`CMAKE_APPBUNDLE_PATH` cache and environment variables will
@@ -683,7 +683,7 @@ endmacro()
  cache and environment variables to ``pkg-config`` search path.
 
  If this variable is not set, this behavior is enabled by default if
- :variable:`CMAKE_MINIMUM_REQUIRED_VERSION` is 3.1 or later, disabled
+ :variable:`CMAKE_MINIMUM_REQUIRED_VERSION` is 3.5 or later, disabled
  otherwise.
 #]========================================]
 
