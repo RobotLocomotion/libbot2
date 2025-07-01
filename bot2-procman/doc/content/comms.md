@@ -68,6 +68,7 @@ LCM Channel | Message type | Description
 ------------|--------------|-------------
 `PMD_DISOCVER` | [discovery_t](\ref procman_lcm_discovery_t) | When received, the deputy replies by transmitting its state on `PMD_INFO2`.
 `PMD_ORDERS2` | [orders2_t](\ref procman_lcm_orders2_t) | When received, the deputy checks if the orders are targeted for it.  If not, or if the timestamp on the orders differs significantly from the deputy's system clock, then it ignores the message.  Otherwise, the deputy modifies its state to achieve the state indicated by the orders.  This may involve creating, starting, and stopping commands.
+`EXTERNAL_PMD_ORDERS2` | [orders2_t](\ref procman_lcm_orders2_t) | Mostly same with `PMD_ORDERS2`, but this is for ordering commands externally, not from gui.
 
 # Sheriff {#procman_comms_sheriff}
 

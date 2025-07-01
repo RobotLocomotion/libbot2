@@ -142,6 +142,7 @@ class SheriffGtk(object):
 
         # options menu
         self.is_observer_cmi = self.builder.get_object("is_observer_cmi")
+        self.enable_external_pmd_orders_cmi = self.builder.get_object("enable_external_pmd_orders_cmi")
         self.spawn_deputy_mi = self.builder.get_object("spawn_deputy_mi")
         self.terminate_spawned_deputy_mi = self.builder.get_object(
             "terminate_spawned_deputy_mi")
@@ -348,6 +349,14 @@ class SheriffGtk(object):
 
         if self.is_observer_cmi != is_observer:
             self.is_observer_cmi.set_active(is_observer)
+
+    def set_enable_external_pmd_orders(self, enable_external_pmd_orders):
+        self.sheriff.set_enable_external_pmd_orders(enable_external_pmd_orders)
+
+        self._update_menu_item_sensitivities()
+
+        if self.enable_external_pmd_orders_cmi != enable_external_pmd_orders:
+            self.enable_external_pmd_orders_cmi.set_active(enable_external_pmd_orders)
 
     def run_script(self, menuitem, script, script_done_action=None):
         self.script_done_action = script_done_action
@@ -576,6 +585,9 @@ class SheriffGtk(object):
     def on_is_observer_cmi_toggled(self, menu_item):
         self.set_observer(menu_item.get_active())
 
+    def on_enable_external_pmd_orders_cmi_toggled(self, menu_item):
+        self.set_enable_external_pmd_orders(menu_item.get_active())
+
     def on_spawn_deputy_mi_activate(self, *args):
         print("Spawn deputy!")
         self._terminate_spawned_deputy()
@@ -765,6 +777,12 @@ Options:
   -l, --lone-ranger   Automatically run a deputy within the sheriff process
                       This deputy terminates with the sheriff, along with
                       all the commands it hosts.
+  
+  -a, --accept-external-orders
+                      Only valid in lone ranger mode.
+                      Runs in accept external orders mode on startup. This
+                      allows the sheriff to accept external orders, not from 
+                      the GUI.
 
   -n, --no-gui        Runs in headless mode (no GUI).
 
@@ -792,8 +810,8 @@ named script once the config file is loaded.
 
 def main():
     try:
-        opts, args = getopt.getopt(sys.argv[1:], 'hlon', [
-            'help', 'lone-ranger', 'on-script-complete=', 'no-gui', 'observer'
+        opts, args = getopt.getopt(sys.argv[1:], 'hleon', [
+            'help', 'lone-ranger', 'enable_external_pmd_orders', 'on-script-complete=', 'no-gui', 'observer'
         ])
     except getopt.GetoptError:
         usage()
@@ -803,10 +821,13 @@ def main():
     use_gui = True
     script_done_action = None
     observer = False
+    enable_external_pmd_orders = False
 
     for optval, argval in opts:
         if optval in ['-l', '--lone-ranger']:
             spawn_deputy = True
+        elif optval in ['-e', '--enable_external_pmd_orders']:
+            enable_external_pmd_orders = True
         elif optval in ['-n', '--no-gui']:
             use_gui = False
         elif optval in ['-o', '--observer']:
@@ -842,6 +863,9 @@ def main():
         if spawn_deputy:
             print("Lone ranger mode and observer mode are mutually exclusive.")
             sys.exit(1)
+        if enable_external_pmd_orders:
+            print("Enabling external pmd orders is only valid in the lone ranger mode.")
+            sys.exit(1)
 
     lc = LCM()
 
@@ -860,6 +884,8 @@ def main():
             gui.set_observer(True)
         if spawn_deputy:
             gui.on_spawn_deputy_mi_activate()
+            if enable_external_pmd_orders:
+                gui.set_enable_external_pmd_orders(True)
         if cfg is not None:
             gui.load_config(cfg)
             gui.load_save_dir = os.path.dirname(args[0])

@@ -57,6 +57,35 @@ def _now_utime():
     return int(time.time() * 1000000)
 
 
+def _orders_to_orders2_t(dep_orders):
+    new_orders = orders2_t()
+    new_orders.utime = dep_orders.utime
+    new_orders.host = dep_orders.host
+    new_orders.sheriff_name = dep_orders.sheriff_name
+    new_orders.num_options = 0
+    new_orders.option_names = []
+    new_orders.option_values = []
+    new_orders.ncmds = dep_orders.ncmds
+    for cmd_index, cmd_order in enumerate(dep_orders.cmds):
+        cmd_msg = dep_orders.cmds[cmd_index]
+        new_cmd_msg = sheriff_cmd2_t()
+        new_cmd_msg.cmd = command2_t()
+        new_cmd_msg.cmd.exec_str = cmd_msg.name
+        new_cmd_msg.cmd.command_name = cmd_msg.nickname
+        new_cmd_msg.cmd.group = cmd_msg.group
+        new_cmd_msg.cmd.auto_respawn = cmd_msg.auto_respawn
+        new_cmd_msg.cmd.stop_signal = DEFAULT_STOP_SIGNAL
+        new_cmd_msg.cmd.stop_time_allowed = DEFAULT_STOP_TIME_ALLOWED
+        new_cmd_msg.cmd.num_options = 0
+        new_cmd_msg.cmd.option_names = []
+        new_cmd_msg.cmd.option_values = []
+        new_cmd_msg.desired_runid = cmd_msg.desired_runid
+        new_cmd_msg.force_quit = cmd_msg.force_quit
+        new_cmd_msg.sheriff_id = cmd_msg.sheriff_id
+        new_orders.cmds.append(new_cmd_msg)
+    return new_orders
+
+
 # Command status - trying to start
 TRYING_TO_START = "Starting (Command Sent)"
 
@@ -433,6 +462,27 @@ class SheriffDeputy(object):
                 if old_status != new_status:
                     status_changes.append((cmd, old_status, new_status))
         return status_changes
+    
+    def _update_from_external_deputy_orders2(self, orders_msg):
+        status_changes = []
+        for cmd_msg in orders_msg.cmds:
+            if cmd_msg.sheriff_id in self._commands:
+                cmd = self._commands[cmd_msg.sheriff_id]
+                old_status = cmd.status()
+            else:
+                _warn("New commands from external orders are not supported.")
+                _warn("Ignoring to add thecommand %s" % cmd_msg.name)
+                continue
+            cmd._update_from_cmd_order2(cmd_msg)
+            new_status = cmd.status()
+            if old_status != new_status:
+                status_changes.append((cmd, old_status, new_status))
+        updated_ids = set([cmd_msg.sheriff_id for cmd_msg in orders_msg.cmds])
+        for cmd in self._commands.values():
+            if cmd.sheriff_id not in updated_ids:
+                _warn("Removing commands from external orders are not supported.")
+                _warn("Ignoring the removal of %s" % cmd.name)
+        return status_changes
 
     def _add_command(self, newcmd):
         assert newcmd.sheriff_id != 0
@@ -594,8 +644,11 @@ class Sheriff(object):
         self._lcm.subscribe("PMD_INFO2", self._on_pmd_info2)
         self._lcm.subscribe("PMD_ORDERS", self._on_pmd_orders)
         self._lcm.subscribe("PMD_ORDERS2", self._on_pmd_orders2)
+        self._lcm.subscribe("EXTERNAL_PMD_ORDERS", self._on_external_pmd_orders)
+        self._lcm.subscribe("EXTERNAL_PMD_ORDERS2", self._on_external_pmd_orders2)
         self._deputies = {}
         self._is_observer = False
+        self._enable_external_pmd_orders = False
         self._name = (platform.node() + ":" + str(os.getpid()) + ":"
                       + str(_now_utime()))
 
@@ -844,33 +897,30 @@ class Sheriff(object):
 
     def _on_pmd_orders(self, _, data):
         dep_orders = orders_t.decode(data)
-
-        new_orders = orders2_t()
-        new_orders.utime = dep_orders.utime
-        new_orders.host = dep_orders.host
-        new_orders.sheriff_name = dep_orders.sheriff_name
-        new_orders.num_options = 0
-        new_orders.option_names = []
-        new_orders.option_values = []
-        new_orders.ncmds = dep_orders.ncmds
-        for cmd_index, cmd_order in enumerate(dep_orders.cmds):
-            cmd_msg = dep_orders.cmds[cmd_index]
-            new_cmd_msg = sheriff_cmd2_t()
-            new_cmd_msg.cmd = command2_t()
-            new_cmd_msg.cmd.exec_str = cmd_msg.name
-            new_cmd_msg.cmd.command_name = cmd_msg.nickname
-            new_cmd_msg.cmd.group = cmd_msg.group
-            new_cmd_msg.cmd.auto_respawn = cmd_msg.auto_respawn
-            new_cmd_msg.cmd.stop_signal = DEFAULT_STOP_SIGNAL
-            new_cmd_msg.cmd.stop_time_allowed = DEFAULT_STOP_TIME_ALLOWED
-            new_cmd_msg.cmd.num_options = 0
-            new_cmd_msg.cmd.option_names = []
-            new_cmd_msg.cmd.option_values = []
-            new_cmd_msg.desired_runid = cmd_msg.desired_runid
-            new_cmd_msg.force_quit = cmd_msg.force_quit
-            new_cmd_msg.sheriff_id = cmd_msg.sheriff_id
-            new_orders.cmds.append(new_cmd_msg)
+        new_orders = _orders_to_orders2_t(dep_orders)
         self._handle_orders2_t(new_orders)
+
+    def _handle_external_orders2_t(self, orders_msg):
+        if self._is_observer:
+            # ignore external orders in observer mode
+            _warn("Ignoring external orders in Observer mode")
+            return
+        if not self._enable_external_pmd_orders:
+            _warn("Ignoring external orders because enable_external_pmd_orders is False")
+            return
+        deputy = self._get_or_make_deputy(orders_msg.host)
+        status_changes = deputy._update_from_external_deputy_orders2(orders_msg)
+        self._maybe_emit_status_change_signals(deputy, status_changes)
+        self.send_orders()
+
+    def _on_external_pmd_orders2(self, _, data):
+        orders_msg = orders2_t.decode(data)
+        self._handle_external_orders2_t(orders_msg)
+
+    def _on_external_pmd_orders(self, _, data):
+        dep_orders = orders_t.decode(data)
+        new_orders = _orders_to_orders2_t(dep_orders)
+        self._handle_external_orders2_t(new_orders)
 
     def __get_free_sheriff_id(self):
         id_to_try = random.randint(0, (1 << 31) - 1)
@@ -1120,6 +1170,14 @@ class Sheriff(object):
         spec.stop_signal = cmd.stop_signal
         spec.stop_time_allowed = cmd.stop_time_allowed
         return self.add_command(spec)
+
+    def set_enable_external_pmd_orders(self, enable):
+        """Set whether the sheriff should accept external pmd orders.
+
+        @param enable True if the sheriff should enable external pmd orders,
+        False if it should ignore them.
+        """
+        self._enable_external_pmd_orders = enable
 
     def set_observer(self, is_observer):
         """Set the sheriff into observation mode, or remove it from
