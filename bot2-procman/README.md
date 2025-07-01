@@ -57,6 +57,7 @@ or with `-l`, but `--lone-ranger` is cooler.
 git clone --branch drake https://github.com/RobotLocomotion/libbot2.git
 mkdir libbot2-build
 cd libbot2-build
+export CMAKE_POLICY_VERSION_MINIMUM=3.5
 cmake -DCMAKE_INSTALL_PREFIX=/path/to/libbot2/install -DWITH_BOT_PROCMAN=ON ../libbot2
 make install
 ```

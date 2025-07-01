@@ -114,6 +114,15 @@
                       </object>
                     </child>
                     <child>
+                      <object class="GtkCheckMenuItem" id="enable_external_pmd_orders_cmi">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="label" translatable="yes">_Accept External Orders</property>
+                        <property name="use_underline">True</property>
+                        <signal name="toggled" handler="on_enable_external_pmd_orders_cmi_toggled" swapped="no"/>
+                      </object>
+                    </child>
+                    <child>
                       <object class="GtkMenuItem" id="spawn_deputy_mi">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>

@@ -72,6 +72,7 @@ You will also need to manually install LCM from <https://lcm-proj.github.io/>.
 git clone --branch drake https://github.com/RobotLocomotion/libbot2.git
 mkdir libbot2-build
 cd libbot2-build
+export CMAKE_POLICY_VERSION_MINIMUM=3.5
 cmake -DCMAKE_INSTALL_PREFIX=/path/to/libbot2/install ../libbot2
 make install
 ```
