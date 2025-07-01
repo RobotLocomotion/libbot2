@@ -777,8 +777,8 @@ Options:
   -l, --lone-ranger   Automatically run a deputy within the sheriff process
                       This deputy terminates with the sheriff, along with
                       all the commands it hosts.
-  
-  -a, --accept-external-orders
+
+  -e, --enable_external_pmd_orders
                       Only valid in lone ranger mode.
                       Runs in accept external orders mode on startup. This
                       allows the sheriff to accept external orders, not from 
